@@ -315,7 +315,7 @@ async function save() {
   try {
     await saveRec(rec); dirty = false; haptic("success");
     const tips = [];
-    if (rec.sleep != null && rec.sleep < 6) tips.push("Сон меньше 6 ч: завтра всё равно подъём в 7:00, днём не спать.");
+    if (rec.sleep != null && rec.sleep < 6) tips.push("Сон меньше 6 ч: завтра всё равно подъём в 6:00, днём не спать.");
     if (rec.pain != null && rec.pain >= 4) tips.push("Боль 4+: верх завтра не тренируешь, напиши Claude.");
     const n = checksDone(rec); if (n < CHECKS.length / 2) tips.push("Меньше половины чек-листа. Завтра начни с первых трёх пунктов.");
     setStatus(`Сохранено · чек-лист ${n}/${CHECKS.length}` + (tips.length ? " · " + tips.join(" ") : ""));

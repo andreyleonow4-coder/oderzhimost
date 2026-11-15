@@ -8,7 +8,7 @@ export const GOAL_WEIGHT = 81;
 export const TOTAL_DAYS = 120;
 
 export const CHECKS = [
-  ["wake", "Подъём в 7:00"],
+  ["wake", "Подъём в 6:00"],
   ["light", "10 минут света утром"],
   ["train", "Тренировка по плану / отдых"],
   ["back", "10 минут на спину"],
