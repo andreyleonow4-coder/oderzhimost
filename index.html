@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Одержимость</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --fb-bg: #FFFFFF; --fb-surface: #F1F3F7; --fb-ink: #141824; --fb-muted: #6B7285; --fb-accent: #2747D6; --fb-accent-ink: #FFFFFF;
+  --good: #1F9A55; --warn: #C98010; --bad: #DB4A3A;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --fb-bg: #10131A; --fb-surface: #1A1F2B; --fb-ink: #E8EBF2; --fb-muted: #98A0B3; --fb-accent: #7C93FF; --fb-accent-ink: #10131A; color-scheme: dark; }
+}
+:root {
+  --bg: var(--tg-theme-bg-color, var(--fb-bg));
+  --surface: var(--tg-theme-secondary-bg-color, var(--fb-surface));
+  --ink: var(--tg-theme-text-color, var(--fb-ink));
+  --muted: var(--tg-theme-hint-color, var(--fb-muted));
+  --accent: var(--tg-theme-button-color, var(--fb-accent));
+  --accent-ink: var(--tg-theme-button-text-color, var(--fb-accent-ink));
+  --line: color-mix(in srgb, var(--muted) 28%, transparent);
+  --good-soft: color-mix(in srgb, var(--good) 16%, transparent);
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 -apple-system, "Segoe UI", Roboto, system-ui, sans-serif; }
+.wrap { max-width: 560px; margin: 0 auto; padding: 14px max(14px, env(safe-area-inset-right)) 96px max(14px, env(safe-area-inset-left)); display: grid; gap: 14px; }
+h1 { font-size: 20px; margin: 0; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 16px; margin: 0; font-weight: 700; }
+.muted { color: var(--muted); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+.card { background: var(--surface); border-radius: 14px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.head { display: grid; gap: 8px; }
+.head-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.progress { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--accent); }
+
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border-radius: 12px; padding: 3px; gap: 3px; position: sticky; top: 0; z-index: 5; }
+.tabs button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 700; padding: 9px 4px; border-radius: 9px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+.datebar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.datebar button { border: 0; background: var(--surface); color: var(--ink); width: 40px; height: 40px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+.datebar button:disabled { opacity: .35; }
+.datebar .d { text-align: center; font-weight: 700; }
+.datebar .d small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+
+.plan b { font-weight: 700; }
+.plan { white-space: pre-line; font-size: 14px; }
+
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.f { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.f input, textarea, .slip input {
+  font: inherit; font-size: 16px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; width: 100%; min-width: 0; }
+.f input { font-family: var(--mono); }
+textarea { min-height: 72px; resize: vertical; }
+input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+
+.checks { display: grid; gap: 6px; }
+.check { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; background: var(--bg); cursor: pointer; user-select: none; }
+.check input { width: 20px; height: 20px; margin: 0; accent-color: var(--good); flex: none; }
+.check:has(input:checked) { background: var(--good-soft); }
+.scoreline { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.scoreline .bar { flex: 1; height: 6px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.scoreline .bar span { display: block; height: 100%; background: var(--good); }
+
+.btn { border: 0; border-radius: 12px; padding: 13px 16px; font: inherit; font-weight: 700; background: var(--accent); color: var(--accent-ink); cursor: pointer; width: 100%; }
+.btn.ghost { background: var(--bg); color: var(--accent); border: 1px solid var(--line); }
+.status { font-size: 13px; color: var(--muted); text-align: center; min-height: 1.2em; }
+.status.bad { color: var(--bad); }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { background: var(--surface); border-radius: 12px; padding: 12px; display: grid; gap: 2px; min-width: 0; }
+.tile b { font-family: var(--mono); font-size: 22px; font-weight: 600; }
+.tile small { font-size: 12px; color: var(--muted); }
+.tile.wide { grid-column: 1 / -1; }
+.good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+.empty { font-size: 13px; color: var(--muted); margin: 0; }
+.cps { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp { font-size: 12.5px; padding: 5px 9px; border-radius: 8px; border: 1px dashed var(--line); }
+.cp.done { color: var(--muted); text-decoration: line-through; border-style: solid; }
+.cp.next { border: 1px solid var(--accent); color: var(--accent); font-weight: 700; }
+
+.tablebox { overflow-x: auto; }
+table.wk { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.wk th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 6px 4px; }
+table.wk td { padding: 7px 4px; border-top: 1px solid var(--line); font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.wk tr.miss td { color: var(--muted); }
+.list { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 4px; }
+.chips { display: flex; gap: 6px; }
+.chips button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+#exportText { font-family: var(--mono); font-size: 12px; min-height: 180px; }
+.slip { display: grid; gap: 8px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="head-row"><h1>Проект 15 марта</h1><span class="eyebrow" id="phase">Фаза 1</span></div>
+    <div class="progress"><span id="prog" style="width:0"></span></div>
+    <div class="head-row muted" style="font-size:12.5px"><span class="num" id="dayN">День 0 из 120</span><span class="num" id="left"></span></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="report">Отчёт</button>
+    <button role="tab" aria-selected="false" data-tab="progress">Прогресс</button>
+    <button role="tab" aria-selected="false" data-tab="week">Неделя</button>
+  </nav>
+
+  <!-- ОТЧЁТ -->
+  <section id="tab-report" class="tabpanel" style="display:grid;gap:14px">
+    <div class="datebar">
+      <button id="prevDay" aria-label="Предыдущий день">‹</button>
+      <div class="d"><span id="dateTitle"></span><small id="dateSub"></small></div>
+      <button id="nextDay" aria-label="Следующий день">›</button>
+    </div>
+    <div class="card"><div class="plan" id="plan"></div></div>
+    <div class="card">
+      <div class="fields">
+        <label class="f">Вес утром, кг<input id="weight" type="text" inputmode="decimal" placeholder="92,0"></label>
+        <label class="f">Сон, часов<input id="sleep" type="text" inputmode="decimal" placeholder="7"></label>
+        <label class="f">Сигарет<input id="cigs" type="text" inputmode="numeric" placeholder="0"></label>
+        <label class="f">Экран, часов<input id="screen" type="text" inputmode="decimal" placeholder="3"></label>
+        <label class="f">Талия, см (вс)<input id="waist" type="text" inputmode="decimal" placeholder="—"></label>
+        <label class="f">Боль, 0–10<input id="pain" type="text" inputmode="numeric" placeholder="0"></label>
+        <label class="f">Оценка дня, 1–10<input id="mood" type="text" inputmode="numeric" placeholder="7"></label>
+        <label class="f">Подтяг. / отжим.<input id="test" type="text" inputmode="text" placeholder="0 / 10"></label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="scoreline"><span class="eyebrow">Чек-лист</span><div class="bar"><span id="scoreBar" style="width:0"></span></div><span class="num" id="scoreNum">0/12</span></div>
+      <div class="checks" id="checks"></div>
+    </div>
+    <div class="card">
+      <label class="f">Заметка: что получилось, что сорвалось и почему<textarea id="note" maxlength="1000"></textarea></label>
+    </div>
+    <button class="btn" id="saveBtn" hidden>Сохранить отчёт</button>
+    <div class="status" id="status" role="status"></div>
+  </section>
+
+  <!-- ПРОГРЕСС -->
+  <section id="tab-progress" class="tabpanel" hidden style="display:grid;gap:14px">
+    <div class="tiles">
+      <div class="tile"><span class="eyebrow">Вес</span><b id="tW">—</b><small id="tWd">старт 92 · цель 81</small></div>
+      <div class="tile"><span class="eyebrow">Талия</span><b id="tWa">—</b><small id="tWad">замер по воскресеньям</small></div>
+      <div class="tile"><span class="eyebrow">Сон, 7 дней</span><b id="tS">—</b><small id="tSd">цель 7+ ч</small></div>
+      <div class="tile"><span class="eyebrow">Сигареты</span><b id="tC">—</b><small id="tCd">отказ 1 декабря</small></div>
+      <div class="tile wide"><span class="eyebrow">Серия</span><b id="tSt">0</b><small>дней подряд с чек-листом от 80%</small></div>
+    </div>
+    <div class="card"><div class="head-row"><h2>Вес</h2><span class="eyebrow">пунктир — цель 81</span></div><div id="chW"></div></div>
+    <div class="card"><div class="head-row"><h2>Сон</h2><span class="eyebrow">14 дней · линия 7 ч</span></div><div id="chS"></div></div>
+    <div class="card"><div class="head-row"><h2>Сигареты</h2><span class="eyebrow">14 дней</span></div><div id="chC"></div></div>
+    <div class="card"><h2>Контрольные точки</h2><p class="empty">Фото в тех же позах + максимум подтягиваний и отжиманий.</p><div class="cps" id="cps"></div></div>
+  </section>
+
+  <!-- НЕДЕЛЯ -->
+  <section id="tab-week" class="tabpanel" hidden style="display:grid;gap:14px">
+    <div class="card">
+      <div class="head-row"><h2 id="wkTitle">Неделя</h2><span class="eyebrow" id="wkCount"></span></div>
+      <div class="tablebox"><table class="wk"><thead><tr><th>День</th><th>Вес</th><th>Сон</th><th>Сиг</th><th>Чек</th><th>Оц</th></tr></thead><tbody id="wkBody"></tbody></table></div>
+      <ul class="list" id="wkNotes"></ul>
+    </div>
+    <div class="card">
+      <h2>Отчёт для Claude</h2>
+      <div class="chips" id="expChips"><button aria-pressed="true" data-n="7">7 дней</button><button aria-pressed="false" data-n="14">14</button><button aria-pressed="false" data-n="30">30</button></div>
+      <textarea id="exportText" readonly></textarea>
+      <button class="btn" id="copyBtn">Скопировать</button>
+      <p class="empty">Скопируй и отправь в чат с Claude.</p>
+    </div>
+    <div class="card slip">
+      <h2>Сорвался</h2>
+      <p class="empty">Запиши, что случилось. Срыв — это данные, а не приговор. Следующий пункт плана — прямо сейчас.</p>
+      <input id="slipText" type="text" maxlength="300" placeholder="Например: выкурил 5 сигарет после ссоры">
+      <button class="btn ghost" id="slipBtn">Записать срыв и подготовить отчёт</button>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import { CHECKS, START, END, QUIT_DATE, START_WEIGHT, GOAL_WEIGHT, TOTAL_DAYS, addDays, diffDays, weekday, short, parseNum,
+  phaseOf, planFor, dayNumber, checksDone, checksPct, streak, smokeFreeDays, exportText } from "./logic.mjs";
+
+const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+const cloud = tg && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9") ? tg.CloudStorage : null;
+const $ = (id) => document.getElementById(id);
+const WD = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+const MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const f1 = (v) => (v == null ? "—" : (Math.round(v * 10) / 10).toString().replace(".", ","));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const haptic = (t) => { try { tg && tg.HapticFeedback.notificationOccurred(t); } catch (e) {} };
+
+function localToday() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+const TODAY = localToday();
+const clamp = (s) => (s < START ? START : s > END ? END : s);
+
+// ---------- хранилище: облако Telegram, вне Telegram — браузер ----------
+let records = {};
+const KEY = (d) => "d_" + d;
+const LS = "oderzhimost-records";
+function cloudCall(method, ...args) {
+  return new Promise((res, rej) => cloud[method](...args, (err, val) => (err ? rej(err) : res(val))));
+}
+async function loadAll() {
+  if (cloud) {
+    const keys = (await cloudCall("getKeys")).filter((k) => k.startsWith("d_"));
+    for (let i = 0; i < keys.length; i += 50) {
+      const vals = await cloudCall("getItems", keys.slice(i, i + 50));
+      for (const k in vals) { try { if (vals[k]) records[k.slice(2)] = JSON.parse(vals[k]); } catch (e) {} }
+    }
+  } else {
+    try { records = JSON.parse(localStorage.getItem(LS) || "{}"); } catch (e) { records = {}; }
+  }
+}
+async function saveRec(rec) {
+  if (cloud) await cloudCall("setItem", KEY(rec.date), JSON.stringify(rec));
+  else { records[rec.date] = rec; try { localStorage.setItem(LS, JSON.stringify(records)); } catch (e) {} }
+  records[rec.date] = rec;
+}
+
+// ---------- шапка ----------
+function renderHead() {
+  const n = dayNumber(TODAY);
+  $("prog").style.width = (n / TOTAL_DAYS * 100).toFixed(1) + "%";
+  $("dayN").textContent = TODAY < START ? "Старт 16 ноября" : `День ${n} из ${TOTAL_DAYS}`;
+  $("left").textContent = `до 15 марта ${Math.max(0, diffDays(TODAY, END))} дн.`;
+  $("phase").textContent = ["", "Фаза 1 · Фундамент", "Фаза 2 · Обороты", "Фаза 3 · Рывок"][phaseOf(clamp(TODAY))];
+}
+
+// ---------- вкладки ----------
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  document.querySelectorAll(".tabpanel").forEach((p) => (p.hidden = p.id !== "tab-" + b.dataset.tab));
+  updateMainButton();
+  if (b.dataset.tab === "progress") renderProgress();
+  if (b.dataset.tab === "week") renderWeek();
+  window.scrollTo(0, 0);
+}));
+const activeTab = () => document.querySelector('.tabs button[aria-selected="true"]').dataset.tab;
+
+// ---------- отчёт ----------
+const FIELDS = [
+  ["weight", 40, 200], ["sleep", 0, 16], ["cigs", 0, 80, true], ["screen", 0, 24],
+  ["waist", 50, 160], ["pain", 0, 10, true], ["mood", 1, 10, true],
+];
+let curDate = clamp(TODAY), dirty = false;
+CHECKS.forEach(([id, label]) => {
+  const l = document.createElement("label"); l.className = "check";
+  l.innerHTML = `<input type="checkbox" id="c_${id}"><span></span>`;
+  l.querySelector("span").textContent = label;
+  $("checks").appendChild(l);
+});
+function score() {
+  const n = CHECKS.filter(([id]) => $("c_" + id).checked).length;
+  $("scoreBar").style.width = (n / CHECKS.length * 100) + "%";
+  $("scoreNum").textContent = `${n}/${CHECKS.length}`;
+}
+$("tab-report").addEventListener("input", () => { dirty = true; score(); setStatus(""); });
+$("checks").addEventListener("change", () => { try { tg && tg.HapticFeedback.selectionChanged(); } catch (e) {} });
+
+function fill(date) {
+  const r = records[date] || {};
+  FIELDS.forEach(([k]) => { $(k).value = r[k] != null ? String(r[k]).replace(".", ",") : ""; });
+  $("test").value = r.test || ""; $("note").value = r.note || "";
+  CHECKS.forEach(([id]) => { $("c_" + id).checked = !!(r.checks && r.checks[id]); });
+  score(); dirty = false;
+  const d = new Date(date + "T12:00:00");
+  $("dateTitle").textContent = date === TODAY ? "Сегодня" : date === addDays(TODAY, -1) ? "Вчера" : `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  $("dateSub").textContent = `${WD[weekday(date)]}, ${short(date)} · день ${dayNumber(date)}` + (records[date] ? " · сохранён" : "");
+  $("prevDay").disabled = date <= START; $("nextDay").disabled = date >= END;
+  $("plan").innerHTML = planFor(date);
+  setStatus("");
+}
+function go(delta) {
+  if (dirty && !confirmLeave()) return;
+  curDate = clamp(addDays(curDate, delta)); fill(curDate);
+}
+let leaveArmed = false;
+function confirmLeave() { // без confirm(): второе нажатие подтверждает
+  if (leaveArmed) { leaveArmed = false; return true; }
+  leaveArmed = true; setStatus("Есть несохранённые изменения. Нажми ещё раз, чтобы уйти без сохранения.", true);
+  setTimeout(() => (leaveArmed = false), 4000); return false;
+}
+$("prevDay").addEventListener("click", () => go(-1));
+$("nextDay").addEventListener("click", () => go(1));
+
+function collect() {
+  const rec = { date: curDate, checks: {} };
+  for (const [k, min, max, int] of FIELDS) {
+    const raw = $(k).value.trim(); if (!raw || raw === "-" || raw === "—") continue;
+    const v = parseNum(raw);
+    if (v == null || v < min || v > max || (int && !Number.isInteger(v))) { $(k).focus(); throw new Error(`Проверь поле «${$(k).parentElement.firstChild.textContent.trim()}»: ${int ? "целое " : ""}число от ${min} до ${max}.`); }
+    rec[k] = v;
+  }
+  const test = $("test").value.trim(); if (test) rec.test = test.slice(0, 40);
+  const note = $("note").value.trim(); if (note) rec.note = note.slice(0, 1000);
+  CHECKS.forEach(([id]) => { if ($("c_" + id).checked) rec.checks[id] = 1; });
+  const prev = records[curDate]; if (prev && prev.slips) rec.slips = prev.slips;
+  rec.savedAt = new Date().toISOString();
+  return rec;
+}
+let saving = false;
+async function save() {
+  if (saving) return;
+  let rec; try { rec = collect(); } catch (e) { setStatus(e.message, true); haptic("error"); return; }
+  saving = true; if (tg) tg.MainButton.showProgress();
+  try {
+    await saveRec(rec); dirty = false; haptic("success");
+    const tips = [];
+    if (rec.sleep != null && rec.sleep < 6) tips.push("Сон меньше 6 ч: завтра всё равно подъём в 7:00, днём не спать.");
+    if (rec.pain != null && rec.pain >= 4) tips.push("Боль 4+: верх завтра не тренируешь, напиши Claude.");
+    const n = checksDone(rec); if (n < CHECKS.length / 2) tips.push("Меньше половины чек-листа. Завтра начни с первых трёх пунктов.");
+    setStatus(`Сохранено · чек-лист ${n}/${CHECKS.length}` + (tips.length ? " · " + tips.join(" ") : ""));
+    $("dateSub").textContent = `${WD[weekday(curDate)]}, ${short(curDate)} · день ${dayNumber(curDate)} · сохранён`;
+  } catch (e) { setStatus("Не сохранилось: нет связи с Telegram. Попробуй ещё раз.", true); haptic("error"); }
+  finally { saving = false; if (tg) tg.MainButton.hideProgress(); }
+}
+function setStatus(t, bad) { const s = $("status"); s.textContent = t; s.className = "status" + (bad ? " bad" : ""); }
+$("saveBtn").addEventListener("click", save);
+
+function updateMainButton() {
+  const onReport = activeTab() === "report";
+  if (tg) {
+    tg.MainButton.setParams({ text: "Сохранить отчёт" });
+    if (onReport) tg.MainButton.show(); else tg.MainButton.hide();
+  } else $("saveBtn").hidden = !onReport;
+}
+if (tg) tg.MainButton.onClick(save);
+
+// ---------- прогресс ----------
+const NS = "http://www.w3.org/2000/svg";
+const svg = (w, h, label) => { const s = document.createElementNS(NS, "svg"); s.setAttribute("viewBox", `0 0 ${w} ${h}`); s.setAttribute("class", "chart"); s.setAttribute("role", "img"); s.setAttribute("aria-label", label); return s; };
+const add = (p, tag, a, txt) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; p.appendChild(e); return e; };
+const sorted = () => Object.values(records).sort((a, b) => (a.date < b.date ? -1 : 1));
+
+function weightChart() {
+  const box = $("chW"); box.innerHTML = "";
+  const pts = sorted().filter((r) => r.weight != null);
+  const W = 360, H = 190, L = 28, R = 8, T = 10, B = 22;
+  const vals = pts.map((p) => p.weight), yMin = Math.min(78, ...vals), yMax = Math.max(94, ...vals);
+  const x = (i) => L + i / (TOTAL_DAYS - 1) * (W - L - R), y = (v) => T + (1 - (v - yMin) / (yMax - yMin)) * (H - T - B);
+  const s = svg(W, H, "Вес за программу");
+  for (let v = Math.ceil(yMin / 4) * 4; v <= yMax; v += 4) { add(s, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)" }); add(s, "text", { x: L - 4, y: y(v) + 3, "text-anchor": "end" }, v); }
+  [["2026-12-01", "дек"], ["2027-01-01", "янв"], ["2027-02-01", "фев"], ["2027-03-01", "мар"]].forEach(([d, t]) => { const xi = x(diffDays(START, d)); add(s, "text", { x: xi, y: H - 6, "text-anchor": "middle" }, t); });
+  add(s, "line", { x1: x(0), y1: y(START_WEIGHT), x2: x(TOTAL_DAYS - 1), y2: y(GOAL_WEIGHT), stroke: "var(--muted)", opacity: .45 });
+  add(s, "line", { x1: L, x2: W - R, y1: y(GOAL_WEIGHT), y2: y(GOAL_WEIGHT), stroke: "var(--good)", "stroke-width": 1.5, "stroke-dasharray": "5 4" });
+  if (pts.length) {
+    add(s, "path", { d: pts.map((p, i) => (i ? "L" : "M") + x(diffDays(START, p.date)).toFixed(1) + " " + y(p.weight).toFixed(1)).join(" "), fill: "none", stroke: "var(--accent)", "stroke-width": 2.2, "stroke-linejoin": "round" });
+    const lp = pts[pts.length - 1];
+    add(s, "circle", { cx: x(diffDays(START, lp.date)), cy: y(lp.weight), r: 4, fill: "var(--accent)" });
+  }
+  box.appendChild(s);
+  if (!pts.length) box.insertAdjacentHTML("beforeend", '<p class="empty">Линия появится после первого взвешивания. Серая диагональ — темп до 81 кг к 15 марта.</p>');
+}
+function bars(boxId, key, o) {
+  const box = $(boxId); box.innerHTML = "";
+  const end = clamp(TODAY), days = [...Array(14)].map((_, i) => addDays(end, i - 13));
+  const vals = days.map((d) => records[d]?.[key] ?? null);
+  const W = 360, H = 150, L = 24, R = 6, T = 10, B = 20, max = Math.max(o.max, ...vals.filter((v) => v != null));
+  const bw = (W - L - R) / 14, y = (v) => T + (1 - v / max) * (H - T - B);
+  const s = svg(W, H, o.label);
+  o.ticks.forEach((v) => { add(s, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)" }); add(s, "text", { x: L - 4, y: y(v) + 3, "text-anchor": "end" }, v); });
+  days.forEach((d, i) => {
+    const v = vals[i], cx = L + i * bw;
+    if (v != null) { const h = Math.max(1.5, H - B - y(v)); add(s, "rect", { x: cx + bw * .18, y: H - B - h, width: bw * .64, height: h, rx: 2.5, fill: o.color(v) }); }
+    if (i % 3 === 1) add(s, "text", { x: cx + bw / 2, y: H - 5, "text-anchor": "middle" }, short(d));
+  });
+  if (o.line != null) add(s, "line", { x1: L, x2: W - R, y1: y(o.line), y2: y(o.line), stroke: "var(--good)", "stroke-width": 1.5, "stroke-dasharray": "5 4" });
+  box.appendChild(s);
+  if (!vals.some((v) => v != null)) box.insertAdjacentHTML("beforeend", `<p class="empty">${o.empty}</p>`);
+}
+function renderProgress() {
+  const rs = sorted();
+  const ws = rs.filter((r) => r.weight != null);
+  if (ws.length) { const w = ws.at(-1).weight, d = w - START_WEIGHT; $("tW").textContent = f1(w); $("tWd").innerHTML = `<span class="${d <= 0 ? "good" : "bad"}">${d > 0 ? "+" : ""}${f1(d)}</span> · до цели ${f1(Math.max(0, w - GOAL_WEIGHT))}`; }
+  const wa = rs.filter((r) => r.waist != null);
+  if (wa.length) { const l = wa.at(-1).waist, d = l - wa[0].waist; $("tWa").textContent = f1(l); $("tWad").innerHTML = wa.length > 1 ? `<span class="${d <= 0 ? "good" : "bad"}">${d > 0 ? "+" : ""}${f1(d)} см</span> с первого замера` : "первый замер"; }
+  const s7 = [...Array(7)].map((_, i) => records[addDays(TODAY, -i)]?.sleep).filter((v) => v != null);
+  if (s7.length) { const a = s7.reduce((x, y) => x + y, 0) / s7.length; $("tS").textContent = f1(a) + " ч"; $("tSd").innerHTML = `<span class="${a >= 7 ? "good" : a >= 6 ? "warn" : "bad"}">${a >= 7 ? "в норме" : "ниже 7 ч"}</span> · ${s7.length} отч.`; }
+  const sf = smokeFreeDays(records), cs = rs.filter((r) => r.cigs != null);
+  if (sf > 0) { $("tC").textContent = sf + " дн."; $("tCd").innerHTML = '<span class="good">без сигарет подряд</span>'; }
+  else if (cs.length) { $("tC").textContent = cs.at(-1).cigs + " шт"; $("tCd").textContent = TODAY < QUIT_DATE ? `до отказа ${diffDays(TODAY, QUIT_DATE)} дн.` : "дата отказа прошла"; }
+  $("tSt").textContent = streak(records, TODAY);
+  weightChart();
+  bars("chS", "sleep", { max: 10, ticks: [0, 5, 7, 10], line: 7, label: "Сон за 14 дней", empty: "Пиши часы сна каждый день.", color: (v) => (v >= 7 ? "var(--good)" : v >= 5.5 ? "var(--warn)" : "var(--bad)") });
+  bars("chC", "cigs", { max: 30, ticks: [0, 10, 20, 30], line: null, label: "Сигареты за 14 дней", empty: "Сейчас около 30 в день. Цель — ноль с 1 декабря.", color: (v) => (v === 0 ? "var(--good)" : "var(--muted)") });
+  const cps = [["2026-12-13", "13 дек"], ["2027-01-10", "10 янв"], ["2027-02-07", "7 фев"], ["2027-03-07", "7 мар"], ["2027-03-15", "15 мар · финал"]];
+  const next = cps.find(([d]) => d >= TODAY);
+  $("cps").innerHTML = cps.map(([d, t]) => `<span class="cp${d < TODAY ? " done" : next && next[0] === d ? " next" : ""}">${t}</span>`).join("");
+}
+
+// ---------- неделя и выгрузка ----------
+let expN = 7, slipNote = "";
+function renderWeek() {
+  const end = clamp(TODAY), days = [...Array(7)].map((_, i) => addDays(end, i - 6)), prev = days.map((d) => addDays(d, -7));
+  $("wkTitle").textContent = `Неделя ${short(days[0])} – ${short(days[6])}`;
+  const rep = days.filter((d) => records[d]).length;
+  $("wkCount").textContent = `отчётов ${rep}/7`;
+  $("wkBody").innerHTML = days.map((d) => {
+    const r = records[d];
+    if (!r) return `<tr class="miss"><td>${WD[weekday(d)]} ${short(d)}</td><td colspan="5">нет отчёта</td></tr>`;
+    const p = checksPct(r);
+    return `<tr><td>${WD[weekday(d)]} ${short(d)}</td><td>${f1(r.weight)}</td><td>${f1(r.sleep)}</td><td>${r.cigs ?? "—"}</td><td class="${p >= 80 ? "good" : p >= 50 ? "warn" : "bad"}">${checksDone(r)}/${CHECKS.length}</td><td>${r.mood ?? "—"}</td></tr>`;
+  }).join("");
+  const avg = (ds, k) => { const v = ds.map((d) => records[d]?.[k]).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const notes = [];
+  [["Вес", "weight", " кг", true], ["Сон", "sleep", " ч", false], ["Сигареты в день", "cigs", "", true], ["Экран", "screen", " ч", true]].forEach(([n, k, u, low]) => {
+    const a = avg(days, k), b = avg(prev, k); if (a == null) return;
+    let t = `${n}: ${f1(a)}${u}`;
+    if (b != null) { const d = a - b, ok = low ? d <= 0 : d >= 0; t += ` <span class="${ok ? "good" : "bad"}">(${d > 0 ? "+" : ""}${f1(d)})</span>`; }
+    notes.push(t);
+  });
+  if (days.some((d) => (records[d]?.pain ?? 0) >= 4)) notes.push('<span class="bad">Боль под лопатками была 4+ — напиши Claude и терапевту.</span>');
+  const miss = CHECKS.map(([id, l]) => [l, days.filter((d) => records[d] && !records[d].checks?.[id]).length]).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]);
+  if (miss.length) notes.push("Чаще всего проваливаешь: " + miss.slice(0, 3).map(([l, n]) => `${esc(l.toLowerCase())} (${n})`).join(", "));
+  if (rep < 7) notes.push("Пропуск отчёта = проваленный день.");
+  $("wkNotes").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+  $("exportText").value = exportText(records, end, expN, slipNote);
+}
+$("expChips").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  expN = Number(b.dataset.n);
+  $("expChips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  $("exportText").value = exportText(records, clamp(TODAY), expN, slipNote);
+});
+$("copyBtn").addEventListener("click", async () => {
+  const ta = $("exportText");
+  try { await navigator.clipboard.writeText(ta.value); $("copyBtn").textContent = "Скопировано ✓"; haptic("success"); }
+  catch (e) { ta.focus(); ta.select(); $("copyBtn").textContent = "Текст выделен — скопируй вручную"; }
+  setTimeout(() => ($("copyBtn").textContent = "Скопировать"), 2500);
+});
+$("slipBtn").addEventListener("click", async () => {
+  const t = $("slipText").value.trim();
+  if (!t) { $("slipText").focus(); return; }
+  const d = clamp(TODAY), rec = { ...(records[d] || { date: d, checks: {} }) };
+  rec.slips = [...(rec.slips || []), t.slice(0, 300)];
+  try { await saveRec(rec); } catch (e) { $("slipBtn").textContent = "Не сохранилось, попробуй ещё раз"; return; }
+  slipNote = t; $("slipText").value = ""; haptic("warning");
+  renderWeek();
+  $("exportText").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("slipBtn").textContent = "Записано. Скопируй отчёт выше и отправь Claude";
+});
+
+// ---------- старт ----------
+renderHead();
+fill(curDate);
+updateMainButton();
+if (!tg) setStatus("Открыто вне Telegram: отчёты сохраняются только в этом браузере.");
+try { await loadAll(); fill(curDate); }
+catch (e) { setStatus("Не удалось загрузить отчёты из Telegram. Закрой и открой приложение.", true); }
+</script>
+</body>
+</html>
