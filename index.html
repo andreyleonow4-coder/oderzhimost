@@ -123,6 +123,14 @@ details.acc.now { outline: 2px solid var(--accent); }
 .steps5 li.on { font-weight: 700; color: var(--accent); }
 .shopcat { display: grid; gap: 6px; }
 .shopcat .check { padding: 9px 12px; }
+svg.fig { width: 100%; max-height: 190px; display: block; background: color-mix(in srgb, var(--surface) 60%, transparent); border-radius: 10px; }
+svg.fig .b { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; fill: none; }
+svg.fig .hd { fill: var(--bg); stroke: var(--ink); stroke-width: 3.5; }
+svg.fig .pr { stroke: var(--muted); stroke-width: 3; fill: none; stroke-linecap: round; }
+svg.fig .prf { fill: color-mix(in srgb, var(--muted) 35%, transparent); stroke: var(--muted); stroke-width: 2; }
+svg.fig .ac { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.dose { font-family: var(--mono); font-weight: 700; color: var(--accent); white-space: nowrap; margin-left: auto; font-size: 13px; }
+.err li { color: var(--bad); }
 .check:has(input:checked) span.it { text-decoration: line-through; color: var(--muted); }
 </style>
 </head>
@@ -151,18 +159,16 @@ details.acc.now { outline: 2px solid var(--accent); }
     <div class="card"><div class="plan" id="plan"></div></div>
     <div class="card">
       <div class="fields">
-        <label class="f">Вес утром, кг<input id="weight" type="text" inputmode="decimal" placeholder="92,0"></label>
         <label class="f">Сон, часов<input id="sleep" type="text" inputmode="decimal" placeholder="7"></label>
         <label class="f">Сигарет<input id="cigs" type="text" inputmode="numeric" placeholder="0"></label>
         <label class="f">Экран, часов<input id="screen" type="text" inputmode="decimal" placeholder="3"></label>
-        <label class="f">Талия, см (вс)<input id="waist" type="text" inputmode="decimal" placeholder="—"></label>
-        <label class="f">Боль, 0–10<input id="pain" type="text" inputmode="numeric" placeholder="0"></label>
         <label class="f">Оценка дня, 1–10<input id="mood" type="text" inputmode="numeric" placeholder="7"></label>
-        <label class="f">Подтяг. / отжим.<input id="test" type="text" inputmode="text" placeholder="0 / 10"></label>
+        <label class="f">Вес, кг (вс)<input id="weight" type="text" inputmode="decimal" placeholder="—"></label>
+        <label class="f">Талия, см (вс)<input id="waist" type="text" inputmode="decimal" placeholder="—"></label>
       </div>
     </div>
     <div class="card">
-      <div class="scoreline"><span class="eyebrow">Чек-лист</span><div class="bar"><span id="scoreBar" style="width:0"></span></div><span class="num" id="scoreNum">0/12</span></div>
+      <div class="scoreline"><span class="eyebrow">Чек-лист</span><div class="bar"><span id="scoreBar" style="width:0"></span></div><span class="num" id="scoreNum">0/13</span></div>
       <div class="checks" id="checks"></div>
     </div>
     <div class="card">
@@ -175,7 +181,7 @@ details.acc.now { outline: 2px solid var(--accent); }
   <!-- ПРОГРЕСС -->
   <section id="tab-progress" class="tabpanel" hidden style="display:grid;gap:14px">
     <div class="tiles">
-      <div class="tile"><span class="eyebrow">Вес</span><b id="tW">—</b><small id="tWd">старт 92 · цель 81</small></div>
+      <div class="tile"><span class="eyebrow">Вес</span><b id="tW">—</b><small id="tWd">по воскресеньям · цель 81</small></div>
       <div class="tile"><span class="eyebrow">Талия</span><b id="tWa">—</b><small id="tWad">замер по воскресеньям</small></div>
       <div class="tile"><span class="eyebrow">Сон, 7 дней</span><b id="tS">—</b><small id="tSd">цель 7+ ч</small></div>
       <div class="tile"><span class="eyebrow">Сигареты</span><b id="tC">—</b><small id="tCd">отказ 1 декабря</small></div>
@@ -213,7 +219,9 @@ details.acc.now { outline: 2px solid var(--accent); }
   <section id="tab-plan" class="tabpanel" hidden style="display:grid;gap:14px">
     <div class="subtabs" id="planTabs">
       <button aria-pressed="true" data-p="smoke">Курение</button>
+      <button aria-pressed="false" data-p="ex">Упражнения</button>
       <button aria-pressed="false" data-p="food">Меню и рецепты</button>
+      <button aria-pressed="false" data-p="supps">Добавки</button>
       <button aria-pressed="false" data-p="shop">Закупка</button>
       <button aria-pressed="false" data-p="day">Распорядок</button>
     </div>
@@ -284,6 +292,25 @@ details.acc.now { outline: 2px solid var(--accent); }
       </div>
     </div>
 
+    <!-- упражнения -->
+    <div class="ppanel" id="p-ex" hidden style="display:grid;gap:14px">
+      <div class="card" style="gap:8px">
+        <div class="head-row"><h2>Тренировка</h2><span class="eyebrow">пн, ср, пт · фаза 1</span></div>
+        <p class="empty">Разминка 5 минут: круги руками, наклоны, 20 лёгких приседаний. Отдых между подходами 60–90 секунд. Открой упражнение — фигурка покажет движение.</p>
+        <div id="exWork" style="display:grid;gap:8px"></div>
+      </div>
+      <div class="card" style="gap:8px">
+        <div class="head-row"><h2>Спина и шея</h2><span class="eyebrow">каждый день · 15 минут</span></div>
+        <p class="empty">Разгрузка для забитых плеч, лопаток и шеи. Делай даже в дни без тренировки, можно вечером перед отчётом. Порядок: мяч → валик → дверной проём → лопатки → шея.</p>
+        <div id="exBack" style="display:grid;gap:8px"></div>
+      </div>
+      <div class="card" style="gap:6px">
+        <h2>Правило боли</h2>
+        <p style="margin:0;font-size:14px">Режущая боль под лопатками или в шее — упражнение сразу прекращаешь и пишешь об этом в заметку отчёта. Тянущее ощущение в мышцах — нормально. Отжимания от пола и турник — только после 2 недель без боли и разрешения врача.</p>
+        <p style="margin:0;font-size:14px" class="bad">Онемение или покалывание в руках, головокружение, головная боль от движений шеи — упражнения для шеи не делай, сначала к терапевту.</p>
+      </div>
+    </div>
+
     <!-- меню -->
     <div class="ppanel" id="p-food" hidden style="display:grid;gap:14px">
       <div class="card" style="gap:8px">
@@ -311,6 +338,64 @@ details.acc.now { outline: 2px solid var(--accent); }
       </div>
     </div>
 
+    <!-- добавки -->
+    <div class="ppanel" id="p-supps" hidden style="display:grid;gap:14px">
+      <div class="card">
+        <div class="head-row"><h2>Схема на день</h2><span class="eyebrow">пункт «Добавки» в чек-листе</span></div>
+        <table class="sched">
+          <tr><td>Завтрак</td><td><b>Креатин 5 г</b> — каждый день, и в дни без тренировки. Запить водой<br><span class="muted">+ D3 1000–2000 МЕ с едой, если купишь</span></td></tr>
+          <tr><td>Перемена</td><td><b>Протеин 1 скуп</b> в кефире или воде — если за день не добираешь белок</td></tr>
+          <tr><td>Ужин</td><td><b>Омега-3</b> — 1–2 г EPA + DHA (смотри состав), только с едой</td></tr>
+          <tr><td>За 1–2 ч до сна</td><td><b>Магний B6</b> — по инструкции, курсом <span id="mgCourse">1 месяц</span>, потом перерыв</td></tr>
+        </table>
+      </div>
+      <div class="card" style="gap:8px">
+        <h2>Подробно</h2>
+        <details class="acc"><summary>Креатин<small>сила и мышцы</small></summary><div class="body">
+          <ul>
+            <li>Самая изученная добавка для силы. Загрузка и циклы не нужны: 3–5 г в день постоянно.</li>
+            <li><b>Первые 2–3 недели +1–2 кг воды в мышцах — это не жир.</b> В день старта напиши в заметке отчёта «начал креатин».</li>
+            <li>Пей 2+ литра воды в день.</li>
+            <li>Скажи терапевту, что пьёшь креатин: он поднимает креатинин в анализе крови.</li>
+          </ul>
+        </div></details>
+        <details class="acc"><summary>Омега-3<small>рыбы в меню мало</small></summary><div class="body">
+          <ul>
+            <li>Считай EPA + DHA по составу, а не вес капсулы: нужно 1–2 г в сумме.</li>
+            <li>Только с едой, где есть жир, — иначе усваивается хуже и бывает отрыжка рыбой.</li>
+          </ul>
+        </div></details>
+        <details class="acc"><summary>Протеин<small>просто еда</small></summary><div class="body">
+          <ul>
+            <li>1 скуп ≈ 25 г белка и ≈ 120 ккал — входит в твои 2200 ккал, не сверху.</li>
+            <li>Лучшее место — большая перемена: шейкер с кефиром или водой. Белок за день закрыт.</li>
+            <li>Если по еде набираешь 140–150 г белка, можно не пить.</li>
+          </ul>
+        </div></details>
+        <details class="acc"><summary>Магний B6<small>сон и нервы</small></summary><div class="body">
+          <ul>
+            <li>Вечером, за 1–2 часа до сна.</li>
+            <li><b>Курс 1 месяц, потом перерыв минимум месяц.</b> Длительный приём больших доз B6 вредит нервам: покалывание, онемение. Не превышай дозу и не сочетай с другими витаминами с B6.</li>
+          </ul>
+        </div></details>
+        <details class="acc"><summary>Витамин D3 и мелатонин<small>по ситуации</small></summary><div class="body">
+          <ul>
+            <li><b>D3:</b> зимой дефицит почти у всех. Лучше сдать 25(OH)D у терапевта. До анализа — 1000–2000 МЕ в день с едой, это безопасно. ~300 ₽ на 3 месяца.</li>
+            <li><b>Мелатонин 0,5–1 мг:</b> только если после 2 недель режима 6:00–22:00 всё ещё не засыпаешь. Сначала обсуди бессонницу с терапевтом.</li>
+          </ul>
+        </div></details>
+      </div>
+      <div class="card" style="gap:6px">
+        <h2>Не покупать</h2>
+        <ul class="list">
+          <li>Хлорофилл — пользы не доказано. Допьёшь — не бери снова.</li>
+          <li>Жиросжигатели, «бустеры тестостерона», BCAA.</li>
+          <li>Предтрены и энергетики — кофеин при бессоннице, а после отказа от курения он бьёт вдвое сильнее.</li>
+          <li>Добавки «от курения» — не работают. Нужно — цитизин или НЗТ через врача.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- закупка -->
     <div class="ppanel" id="p-shop" hidden style="display:grid;gap:14px">
       <div class="card">
@@ -328,14 +413,15 @@ details.acc.now { outline: 2px solid var(--accent); }
         <h2>Учебные дни · пн, вт, чт, пт</h2>
         <table class="sched">
           <tr><td>6:00</td><td>Подъём, весь свет, холодная вода в лицо</td></tr>
-          <tr><td>6:15</td><td>Взвешивание, уход за лицом</td></tr>
-          <tr><td>6:30</td><td>Завтрак</td></tr>
+          <tr><td>6:15</td><td>Уход за лицом</td></tr>
+          <tr><td>6:30</td><td>Завтрак + креатин</td></tr>
           <tr><td>7:00</td><td>Сборы, в рюкзак кефир + банан</td></tr>
           <tr><td>7:20</td><td>Автобус</td></tr>
           <tr><td>Перемена</td><td>Кефир + банан на ходу, 10 минут дневного света</td></tr>
           <tr><td>17:30</td><td>Поздний обед — сразу как пришёл</td></tr>
           <tr><td>18:00</td><td>Тренировка (пн, пт) или 10 минут спина + шаги</td></tr>
-          <tr><td>19:30</td><td>Лёгкий ужин, готовка на завтра</td></tr>
+          <tr><td>19:30</td><td>Лёгкий ужин + омега-3, готовка на завтра</td></tr>
+          <tr><td>20:30</td><td>Магний B6 (пока идёт курс)</td></tr>
           <tr><td>21:00</td><td>Отчёт в трекере + мысли на бумагу</td></tr>
           <tr><td>21:30</td><td>Телефон на зарядку вне спальни, книга</td></tr>
           <tr><td>22:00</td><td>Свет выключен</td></tr>
@@ -348,7 +434,7 @@ details.acc.now { outline: 2px solid var(--accent); }
           <tr><td>7:00</td><td>Завтрак</td></tr>
           <tr><td>13:00</td><td>Обед</td></tr>
           <tr><td>ср</td><td>Тренировка + заготовка еды</td></tr>
-          <tr><td>вс</td><td>Заготовка, замер талии, отчёт Claude</td></tr>
+          <tr><td>вс</td><td>Утром натощак взвешивание и замер талии. Заготовка, отчёт Claude</td></tr>
           <tr><td>19:30</td><td>Ужин</td></tr>
           <tr><td>22:00</td><td>Свет выключен</td></tr>
         </table>
@@ -367,7 +453,7 @@ details.acc.now { outline: 2px solid var(--accent); }
 
 <script type="module">
 import { CHECKS, START, END, QUIT_DATE, START_WEIGHT, GOAL_WEIGHT, TOTAL_DAYS, addDays, diffDays, weekday, short, parseNum,
-  phaseOf, planFor, dayNumber, checksDone, checksPct, streak, smokeFreeDays, exportText } from "./logic.mjs";
+  phaseOf, planFor, dayNumber, checksDone, checksPct, streak, smokeFreeDays, exportText } from "./logic.mjs?v=3"; // меняй v после правки logic.mjs, чтобы Telegram не взял старый из кэша
 
 const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
@@ -431,7 +517,7 @@ const activeTab = () => document.querySelector('.tabs button[aria-selected="true
 // ---------- отчёт ----------
 const FIELDS = [
   ["weight", 40, 200], ["sleep", 0, 16], ["cigs", 0, 80, true], ["screen", 0, 24],
-  ["waist", 50, 160], ["pain", 0, 10, true], ["mood", 1, 10, true],
+  ["waist", 50, 160], ["mood", 1, 10, true],
 ];
 let curDate = clamp(TODAY), dirty = false;
 CHECKS.forEach(([id, label]) => {
@@ -451,7 +537,7 @@ $("checks").addEventListener("change", () => { try { tg && tg.HapticFeedback.sel
 function fill(date) {
   const r = records[date] || {};
   FIELDS.forEach(([k]) => { $(k).value = r[k] != null ? String(r[k]).replace(".", ",") : ""; });
-  $("test").value = r.test || ""; $("note").value = r.note || "";
+  $("note").value = r.note || "";
   CHECKS.forEach(([id]) => { $("c_" + id).checked = !!(r.checks && r.checks[id]); });
   score(); dirty = false;
   const d = new Date(date + "T12:00:00");
@@ -482,7 +568,6 @@ function collect() {
     if (v == null || v < min || v > max || (int && !Number.isInteger(v))) { $(k).focus(); throw new Error(`Проверь поле «${$(k).parentElement.firstChild.textContent.trim()}»: ${int ? "целое " : ""}число от ${min} до ${max}.`); }
     rec[k] = v;
   }
-  const test = $("test").value.trim(); if (test) rec.test = test.slice(0, 40);
   const note = $("note").value.trim(); if (note) rec.note = note.slice(0, 1000);
   CHECKS.forEach(([id]) => { if ($("c_" + id).checked) rec.checks[id] = 1; });
   const prev = records[curDate]; if (prev && prev.slips) rec.slips = prev.slips;
@@ -498,7 +583,6 @@ async function save() {
     await saveRec(rec); dirty = false; haptic("success");
     const tips = [];
     if (rec.sleep != null && rec.sleep < 6) tips.push("Сон меньше 6 ч: завтра всё равно подъём в 6:00, днём не спать.");
-    if (rec.pain != null && rec.pain >= 4) tips.push("Боль 4+: верх завтра не тренируешь, напиши Claude.");
     const n = checksDone(rec); if (n < CHECKS.length / 2) tips.push("Меньше половины чек-листа. Завтра начни с первых трёх пунктов.");
     setStatus(`Сохранено · чек-лист ${n}/${CHECKS.length}` + (tips.length ? " · " + tips.join(" ") : ""));
     $("dateSub").textContent = `${WD[weekday(curDate)]}, ${short(curDate)} · день ${dayNumber(curDate)} · сохранён`;
@@ -600,7 +684,6 @@ function renderWeek() {
     if (b != null) { const d = a - b, ok = low ? d <= 0 : d >= 0; t += ` <span class="${ok ? "good" : "bad"}">(${d > 0 ? "+" : ""}${f1(d)})</span>`; }
     notes.push(t);
   });
-  if (days.some((d) => (records[d]?.pain ?? 0) >= 4)) notes.push('<span class="bad">Боль под лопатками была 4+ — напиши Claude и терапевту.</span>');
   const miss = CHECKS.map(([id, l]) => [l, days.filter((d) => records[d] && !records[d].checks?.[id]).length]).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]);
   if (miss.length) notes.push("Чаще всего проваливаешь: " + miss.slice(0, 3).map(([l, n]) => `${esc(l.toLowerCase())} (${n})`).join(", "));
   if (rep < 7) notes.push("Пропуск отчёта = проваленный день.");
@@ -673,6 +756,140 @@ const SHOP = [
   ["Фрукты", ["Бананы — ~10 шт", "Яблоки — 1 кг"]],
   ["Раз в 2–4 недели", ["Мука", "Сметана 15%", "Молоко", "Томатная паста", "Подсолнечное масло", "Зира, паприка, лавровый лист", "Жвачка без сахара (с 1 дек)"]],
 ];
+
+// ---------- упражнения: фигурки ----------
+// Позы — координаты суставов в поле 200×120 (земля y=110). Фигурка плавно ходит между позой A и B.
+const PROFILE = [["s", "hp"], ["s", "e"], ["e", "w"], ["hp", "k"], ["k", "a"], ["s", "h"]];
+const STAND = { a: [100, 110], k: [100, 85], hp: [100, 60], s: [100, 28], h: [100, 17] };
+const FRONT_SEGS = [["n", "hp"], ["l", "r"], ["l", "le"], ["le", "lw"], ["r", "re"], ["re", "rw"], ["hp", "lk"], ["lk", "la"], ["hp", "rk"], ["rk", "ra"], ["n", "h"]];
+const FRONT = { n: [100, 28], l: [84, 30], r: [116, 30], hp: [100, 64], lk: [94, 86], la: [93, 110], rk: [106, 86], ra: [107, 110] };
+const EX_WORK = [
+  { t: "Отжимания от стола или подоконника", dose: "4 × 12–15",
+    poses: [{ h: [141.7, 37], s: [132, 44], e: [136, 57], w: [140, 70], hp: [86, 77], k: [63, 93.5], a: [40, 110] },
+            { h: [137.5, 55], s: [127, 61], e: [122, 74], w: [140, 70], hp: [83.5, 85.5], k: [61.7, 97.8], a: [40, 110] }],
+    prop: () => `<line class="pr" x1="138" y1="70" x2="196" y2="70" style="stroke-width:5"/><line class="pr" x1="146" y1="70" x2="146" y2="110"/><line class="pr" x1="188" y1="70" x2="188" y2="110"/>`,
+    how: ["Ладони на край устойчивого стола чуть шире плеч, ноги отведены назад.", "Тело — прямая доска от пяток до макушки: пресс и ягодицы напряжены.", "Опускайся, пока грудь почти не коснётся края. Локти под углом ~45° к телу, не в стороны.", "Выдох — оттолкнись до прямых рук."],
+    err: ["Провисает поясница или задран таз", "Локти разведены в стороны буквой Т — нагружает плечи"],
+    easy: "Тяжело — встань ближе к столу. Легко — ниже опора (стул у стены)." },
+  { t: "Тяга рюкзака одной рукой с упором", dose: "4 × 10–12 на руку",
+    poses: [{ a: [78, 110], k: [84, 86], hp: [80, 62], s: [124, 56], e: [124, 72], w: [124, 88], h: [135, 52] },
+            { a: [78, 110], k: [84, 86], hp: [80, 62], s: [124, 56], e: [108, 50], w: [112, 66], h: [135, 52] }],
+    prop: (p) => `<line class="pr" x1="134" y1="80" x2="172" y2="80" style="stroke-width:5"/><line class="pr" x1="138" y1="80" x2="138" y2="110"/><line class="pr" x1="168" y1="80" x2="168" y2="110"/><line class="pr" x1="168" y1="80" x2="168" y2="46"/>` +
+      `<line class="b" x1="${p.s[0]}" y1="${p.s[1]}" x2="141" y2="80" style="opacity:.55"/><rect class="prf" x="${p.w[0] - 7}" y="${p.w[1]}" width="14" height="16" rx="3"/>`,
+    how: ["Рюкзак с книгами или бутылками (5–10 кг). Одна рука упирается в сиденье стула или край кровати, ноги в шаге, колени чуть согнуты.", "Спина прямая и почти параллельна полу, рюкзак висит на вытянутой руке.", "Тяни рюкзак к поясу: локоть идёт назад-вверх вдоль тела, лопатка сводится к позвоночнику.", "Секунда паузы вверху, медленно опусти. Сделай все повторы, потом другая рука."],
+    err: ["Круглая спина или разворот корпуса вслед за рукой", "Тянешь к груди и поднимаешь плечо к уху — тяни к поясу"],
+    easy: "Тяжело — меньше вес. Легко — больше вес или пауза 3 секунды вверху." },
+  { t: "Приседания", dose: "4 × 15–20",
+    poses: [{ ...STAND, e: [114, 30], w: [128, 30] },
+            { a: [100, 110], k: [116, 92], hp: [90, 90], s: [104, 60], h: [108, 49], e: [118, 60], w: [132, 60] }],
+    how: ["Стопы на ширине плеч, носки слегка врозь, руки вперёд для баланса.", "Таз назад и вниз, как будто садишься на низкий стул.", "Опускайся до бедра параллельно полу или ниже, спина прямая, пятки не отрываются.", "Колени смотрят туда же, куда носки. Выдох — встаёшь, толкаясь пятками."],
+    err: ["Колени заваливаются внутрь", "Пятки отрываются от пола", "Спина круглится внизу"],
+    easy: "Тяжело — садись на стул и вставай. Легко — пауза 2 секунды внизу или рюкзак на грудь." },
+  { t: "Румынская тяга с рюкзаком", dose: "3 × 12",
+    poses: [{ ...STAND, e: [100, 44], w: [100, 58] },
+            { a: [100, 110], k: [103, 86], hp: [86, 62], s: [117, 47], h: [128, 43], e: [117, 63], w: [117, 78] }],
+    prop: (p) => `<rect class="prf" x="${p.w[0] - 7}" y="${p.w[1]}" width="14" height="16" rx="3"/>`,
+    how: ["Рюкзак с книгами или бутылками воды (5–10 кг) в руках, стопы на ширине таза.", "Колени чуть согнуты и дальше не меняются.", "Отводи таз назад, наклоняясь корпусом. Рюкзак скользит вдоль ног.", "Спина прямая, опускайся до натяжения задней поверхности бедра (примерно до середины голени). Вверх — толкая таз вперёд."],
+    err: ["Круглая спина — главный риск для поясницы", "Приседаешь вместо наклона: колени не должны уходить вперёд"],
+    easy: "Легко — добавь вес в рюкзак или делай на одной ноге." },
+  { t: "Планка на предплечьях", dose: "3 × 45–60 с",
+    poses: [{ a: [40, 106], k: [65, 100], hp: [90, 94], s: [138, 84], e: [138, 106], w: [156, 106], h: [149, 80] },
+            { a: [40, 106], k: [65, 99.5], hp: [90, 93], s: [138, 84], e: [138, 106], w: [156, 106], h: [149, 80] }],
+    how: ["Локти строго под плечами, предплечья параллельно.", "Тело — прямая от пяток до головы, взгляд в пол.", "Напряги пресс, как перед ударом в живот, и сожми ягодицы.", "Дыши ровно, не задерживай дыхание."],
+    err: ["Таз провис или задран вверх", "Плечи уехали за локти вперёд"],
+    easy: "Тяжело — с колен. Легко — поднимай поочерёдно ногу на 2 секунды." },
+  { t: "Разведение полотенца к лицу", dose: "3 × 15",
+    poses: [{ ...STAND, e: [114, 30], w: [128, 30] },
+            { ...STAND, e: [84, 26], w: [88, 9] }],
+    prop: (p) => `<circle cx="${p.w[0]}" cy="${p.w[1]}" r="4" class="prf"/>`,
+    how: ["Полотенце в вытянутых вперёд руках на уровне груди, хват шире плеч.", "Изо всех сил растягивай полотенце в стороны — оно не должно провисать.", "Тяни руки к лицу: локти идут назад и вверх, кисти оказываются у ушей.", "Сведи лопатки, задержись на 2 секунды, медленно вернись."],
+    err: ["Поднимаешь плечи к ушам", "Тянешь без натяжения полотенца — нагрузки нет"],
+    easy: "Это упражнение для задней дельты и осанки: делай медленно, лёгкое жжение между лопатками — норма." },
+];
+const EX_BACK = [
+  { t: "Теннисный мяч у стены", dose: "2–3 мин",
+    poses: [{ a: [82, 110], k: [80, 86], hp: [68, 62], s: [70, 30], h: [71, 19], e: [82, 40], w: [72, 46] },
+            { a: [84, 110], k: [90, 90], hp: [68, 72], s: [70, 40], h: [71, 29], e: [82, 50], w: [72, 56] }],
+    prop: (p) => `<line class="pr" x1="58" y1="4" x2="58" y2="110" style="stroke-width:4"/><circle cx="${63}" cy="${p.s[1] + 6}" r="5" fill="#d9e84a" stroke="var(--muted)"/>`,
+    how: ["Встань спиной к стене, мяч между стеной и мышцами у лопатки — не на позвоночник.", "Медленно приседай и вставай, чтобы мяч катался по забитым местам.", "Нашёл болезненную точку — задержись на 20–30 секунд, дыши, пока не отпустит.", "Обе стороны."],
+    err: ["Мяч на позвоночнике или на самой кости лопатки", "Давишь до острой боли — должно быть терпимо, 5–6 из 10"] },
+  { t: "Валик из полотенца под грудной отдел", dose: "1–2 мин",
+    poses: [{ a: [45, 110], k: [60, 90], hp: [80, 106], s: [118, 100], h: [130, 99], e: [134, 90], w: [128, 95] },
+            { a: [45, 110], k: [60, 90], hp: [80, 106], s: [118, 101], h: [129, 106], e: [138, 101], w: [152, 106] }],
+    prop: () => `<circle cx="106" cy="105" r="5" class="prf"/>`,
+    how: ["Скрути полотенце в плотный валик, ляг так, чтобы он был поперёк спины на уровне лопаток.", "Колени согнуты, ладони за головой.", "На выдохе мягко прогнись через валик, опуская голову и локти к полу. 5 раз.", "Сдвинь валик на 3–4 см выше или ниже и повтори."],
+    err: ["Валик под поясницей — только верх спины", "Резкие прогибы"] },
+  { t: "Растяжка грудных в дверном проёме", dose: "2 × 30 с",
+    poses: [{ a: [96, 110], k: [97, 86], hp: [98, 62], s: [98, 30], h: [98, 19], e: [106, 30], w: [106, 14] },
+            { a: [120, 110], k: [116, 86], hp: [108, 62], s: [112, 30], h: [114, 19], e: [106, 30], w: [106, 14] }],
+    prop: () => `<line class="pr" x1="106" y1="4" x2="106" y2="110" style="stroke-width:5"/>`,
+    how: ["Предплечья на косяки дверного проёма, локти на уровне плеч.", "Шагни одной ногой вперёд и плавно подай грудь через проём.", "Почувствуй растяжение в груди и передней части плеч. Держи 30 секунд, дыши.", "Забитая грудь тянет плечи вперёд — это одна из причин твоей боли."],
+    err: ["Прогиб в пояснице вместо подачи груди", "Тянешь до боли в плече"] },
+  { t: "Сведение лопаток (вид сзади)", dose: "2 × 15",
+    segs: [["n", "hp"], ["l", "r"], ["l", "le"], ["le", "lw"], ["r", "re"], ["re", "rw"], ["hp", "lk"], ["lk", "la"], ["hp", "rk"], ["rk", "ra"], ["n", "h"]],
+    acc: [["b1", "b2"], ["b3", "b4"]],
+    poses: [{ n: [100, 28], h: [100, 17], l: [84, 30], r: [116, 30], le: [72, 42], lw: [68, 26], re: [128, 42], rw: [132, 26], hp: [100, 64], lk: [94, 86], la: [93, 110], rk: [106, 86], ra: [107, 110], b1: [90, 34], b2: [92, 48], b3: [110, 34], b4: [108, 48] },
+            { n: [100, 28], h: [100, 17], l: [86, 31], r: [114, 31], le: [76, 48], lw: [72, 32], re: [124, 48], rw: [128, 32], hp: [100, 64], lk: [94, 86], la: [93, 110], rk: [106, 86], ra: [107, 110], b1: [95, 36], b2: [97, 48], b3: [105, 36], b4: [103, 48] }],
+    how: ["Руки в положении «W»: локти согнуты и прижаты к бокам, кисти на уровне плеч.", "Сведи лопатки вместе и вниз — к заднему карману джинсов, локти тянутся назад-вниз.", "Задержись на 3 секунды, расслабь.", "Плечи не поднимаются к ушам."],
+    err: ["Поднимаешь плечи", "Прогибаешь поясницу вместо работы лопаток"] },
+  { t: "Подбородок назад", dose: "3 × 10 по 5 с",
+    segs: [["c", "n"], ["n", "h"]], head: 18,
+    poses: [{ c: [92, 112], n: [100, 74], h: [120, 46] }, { c: [92, 112], n: [96, 74], h: [104, 42] }],
+    prop: (p) => `<path d="M${p.h[0] + 17} ${p.h[1] - 2} l7 6 l-6 2" class="pr"/><circle cx="${p.h[0] + 8}" cy="${p.h[1] - 5}" r="2" fill="var(--ink)"/><line class="pr" x1="60" y1="112" x2="140" y2="112"/>`,
+    how: ["Сядь или встань прямо, взгляд вперёд.", "Втяни подбородок назад, как будто делаешь двойной подбородок, — голова едет назад по горизонтали, не вниз.", "Почувствуешь натяжение у основания черепа. Держи 5 секунд.", "Это против «шеи текстовика» и для линии челюсти."],
+    err: ["Опускаешь голову вниз вместо движения назад", "Задираешь подбородок"] },
+  { t: "Шея: ухо к плечу", dose: "2 × 30 с на сторону",
+    segs: FRONT_SEGS, acc: [["n", "r"]],
+    poses: [{ ...FRONT, h: [100, 17], le: [74, 18], lw: [94, 6], re: [120, 46], rw: [122, 62] },
+            { ...FRONT, h: [89, 21], le: [70, 22], lw: [84, 9], re: [120, 46], rw: [122, 62] }],
+    how: ["Сядь прямо. Правой рукой возьмись за сиденье стула — плечо фиксируется внизу.", "Левую ладонь положи на голову сверху над правым ухом.", "Мягко наклони левое ухо к левому плечу, рука только добавляет вес, не тянет. Голова не поворачивается.", "Держи 30 секунд, дыши спокойно. Тянет справа сбоку шеи — так и надо. Потом другая сторона."],
+    err: ["Рывки и сильное давление рукой", "Плечо поднимается к уху — держи стул", "Поворачиваешь лицо вниз — это уже другое упражнение"] },
+  { t: "Шея: нос к подмышке", dose: "2 × 30 с на сторону",
+    segs: FRONT_SEGS, acc: [["n", "r"]],
+    poses: [{ ...FRONT, h: [100, 17], le: [74, 18], lw: [94, 6], re: [120, 46], rw: [122, 62] },
+            { ...FRONT, h: [93, 25], le: [72, 24], lw: [88, 13], re: [120, 46], rw: [122, 62] }],
+    how: ["Сядь прямо, правой рукой держись за стул.", "Поверни голову на 45° влево и опусти подбородок, будто смотришь в левый карман / подмышку.", "Левую ладонь на затылок, мягко добавь вес.", "Тянет сзади справа — от шеи к верхнему углу лопатки. Эта мышца часто «забивается» и отдаёт под лопатку. 30 секунд, потом другая сторона."],
+    err: ["Сутулишь всю спину вместо наклона головы", "Давишь до боли"] },
+  { t: "Шея: изометрия в 4 стороны", dose: "по 3 × 10 с",
+    segs: [["c", "n"], ["n", "h"], ["sh", "el"], ["el", "hd"]], head: 18,
+    poses: [{ c: [92, 112], n: [98, 74], h: [110, 46], sh: [84, 98], el: [128, 96], hd: [130, 50] },
+            { c: [92, 112], n: [98, 74], h: [112, 46], sh: [84, 98], el: [128, 96], hd: [132, 50] }],
+    prop: (p) => `<rect class="prf" x="${p.hd[0] - 3}" y="${p.hd[1] - 14}" width="9" height="22" rx="4"/><circle cx="${p.h[0] + 8}" cy="${p.h[1] - 5}" r="2" fill="var(--ink)"/><line class="pr" x1="60" y1="112" x2="140" y2="112"/>`,
+    how: ["Сядь прямо, подбородок слегка втянут.", "Ладонь на лоб. Дави головой в ладонь, а ладонью в голову — на 30% силы. Голова не двигается. 10 секунд.", "То же: сцепленные ладони на затылке, потом ладонь на левый висок, потом на правый.", "Укрепляет мышцы шеи без движения — безопасно при боли. Через 2 недели можно до 50% силы."],
+    err: ["Давишь в полную силу", "Задерживаешь дыхание — дыши ровно", "Голова двигается — значит, давишь неравномерно"] },
+];
+const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+function figSvg(ex, t) {
+  const [A, B] = ex.poses, P = {};
+  for (const k in A) P[k] = B ? lerp(A[k], B[k], t) : A[k];
+  const ln = (cls) => ([p, q]) => `<line class="${cls}" x1="${P[p][0].toFixed(1)}" y1="${P[p][1].toFixed(1)}" x2="${P[q][0].toFixed(1)}" y2="${P[q][1].toFixed(1)}"/>`;
+  return (ex.segs && ex.head ? "" : `<line class="pr" x1="0" y1="110" x2="200" y2="110" style="stroke-width:2"/>`) +
+    (ex.prop ? ex.prop(P) : "") + (ex.segs || PROFILE).map(ln("b")).join("") + (ex.acc || []).map(ln("ac")).join("") +
+    `<circle class="hd" cx="${P.h[0].toFixed(1)}" cy="${P.h[1].toFixed(1)}" r="${ex.head || 7}"/>`;
+}
+const ALL_EX = [...EX_WORK, ...EX_BACK];function exHtml(ex, i) {
+  return `<details class="acc" data-ex="${i}"><summary><span>${esc(ex.t)}</span><span class="dose">${esc(ex.dose)}</span></summary><div class="body">
+    <svg class="fig" viewBox="0 0 200 120" role="img" aria-label="${esc(ex.t)}">${figSvg(ex, 0)}</svg>
+    <ol>${ex.how.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
+    <div><b>Ошибки</b><ul class="err">${ex.err.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    ${ex.easy ? `<p style="margin:0" class="muted">${esc(ex.easy)}</p>` : ""}</div></details>`;
+}
+let exBuilt = false;
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function renderEx() {
+  if (exBuilt) return; exBuilt = true;
+  $("exWork").innerHTML = EX_WORK.map((ex, i) => exHtml(ex, i)).join("");
+  $("exBack").innerHTML = EX_BACK.map((ex, i) => exHtml(ex, EX_WORK.length + i)).join("");
+  if (REDUCED) return;
+  const loop = (ms) => {
+    if (!$("p-ex").hidden && activeTab() === "plan") {
+      const t = (1 - Math.cos(ms / 1600 * Math.PI)) / 2; // туда-обратно ~3,2 с
+      document.querySelectorAll("#p-ex details[open]").forEach((d) => { d.querySelector("svg").innerHTML = figSvg(ALL_EX[+d.dataset.ex], t); });
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
 
 // ---------- план: отрисовка ----------
 function recipeHtml(r, open, badge) {
@@ -768,7 +985,7 @@ $("planTabs").addEventListener("click", (e) => {
   document.querySelectorAll(".ppanel").forEach((p) => (p.hidden = p.id !== "p-" + b.dataset.p));
 });
 async function renderPlan() {
-  renderSmoke(); renderFood();
+  renderSmoke(); renderFood(); renderEx();
   if (!shopLoaded) await loadShop();
   renderShop();
 }

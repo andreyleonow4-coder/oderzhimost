@@ -11,12 +11,13 @@ export const CHECKS = [
   ["wake", "Подъём в 6:00"],
   ["light", "10 минут света утром"],
   ["train", "Тренировка по плану / отдых"],
-  ["back", "10 минут на спину"],
+  ["back", "15 минут на спину и шею"],
   ["steps", "10 000 шагов"],
   ["food", "3 приёма, без сладкого и голодовки"],
   ["protein", "Белок 140+ г"],
   ["water", "Вода 2,5 л"],
   ["skin", "Уход утро и вечер"],
+  ["supps", "Добавки по схеме"],
   ["read", "Чтение 30 минут"],
   ["phone", "Телефон вне спальни"],
   ["journal", "Сброс мыслей на бумагу"],
@@ -24,12 +25,11 @@ export const CHECKS = [
 
 // Вопросы отчёта по порядку. optional — можно пропустить знаком «-».
 export const STEPS = [
-  { key: "weight", q: "Вес утром, кг?", min: 40, max: 200 },
   { key: "sleep", q: "Сколько часов спал?", min: 0, max: 16 },
   { key: "cigs", q: "Сколько сигарет за день?", min: 0, max: 80, int: true },
   { key: "screen", q: "Экранное время, часов?", min: 0, max: 24 },
+  { key: "weight", q: "Вес, кг? (по воскресеньям, иначе «-»)", min: 40, max: 200, optional: true },
   { key: "waist", q: "Талия по пупку, см? (по воскресеньям, иначе «-»)", min: 50, max: 160, optional: true },
-  { key: "pain", q: "Боль под лопатками 0–10?", min: 0, max: 10, int: true },
   { key: "mood", q: "Оценка дня 1–10?", min: 1, max: 10, int: true },
 ];
 
@@ -69,12 +69,12 @@ export function planFor(date) {
       title = "Тренировка: всё тело";
       details = [
         "Отжимания от стола/подоконника — 4 × 12–15",
-        "Тяга лёжа под столом — 4 × 8–12",
+        "Тяга рюкзака одной рукой с упором — 4 × 10–12 на руку",
         "Приседания — 4 × 15–20",
         "Румынская тяга с рюкзаком — 3 × 12",
         "Планка — 3 × 45–60 с",
         "Тяга полотенца/петли к лицу — 3 × 15",
-      ].map((s) => "• " + s).join("\n") + "\nРежущая боль под лопатками — упражнение стоп.";
+      ].map((s) => "• " + s).join("\n") + "\nРежущая боль под лопатками или в шее — упражнение стоп.";
     } else title = "День восстановления";
   } else if (ph === 2) {
     title = { 1: "Тренировка: верх", 3: "Тренировка: низ", 5: "Тренировка: верх", 6: "Тренировка: низ", 2: "Бег: чередуй бег и ходьбу", 4: "Бег: чередуй бег и ходьбу", 0: "Бег: длинный спокойный" }[wd];
@@ -83,7 +83,7 @@ export function planFor(date) {
     title = { 1: "Тренировка: верх", 2: "Тренировка: низ", 3: "Интервальный бег + кор", 5: "Тренировка: верх", 6: "Тренировка: низ", 4: "Лёгкий бег 30 минут", 0: "Отдых" }[wd];
     details = "Чистые подтягивания в каждой тренировке верха.";
   }
-  const always = "Каждый день: 10 минут на спину и 10 000 шагов.";
+  const always = "Каждый день: 15 минут на спину и шею, 10 000 шагов." + (wd === 0 ? "\nВоскресенье: взвешивание натощак и замер талии." : "");
   return `${WD[wd]}, ${short(date)} · фаза ${ph}\n<b>${title}</b>${details ? "\n" + details : ""}\n${always}`;
 }
 
@@ -169,8 +169,6 @@ export function weekSummary(records, endDate) {
   ];
   const lines = [["Вес", cmp("weight", " кг", true)], ["Сон", cmp("sleep", " ч", false)], ["Сигареты в день", cmp("cigs", "", true)], ["Экран", cmp("screen", " ч", true)], ["Оценка дня", cmp("mood", "", false)]];
   lines.forEach(([n, v]) => { if (v) out.push(`${n}: ${v}`); });
-  const pain = pick(days, "pain");
-  if (pain.some((p) => p >= 4)) out.push("⚠️ Боль под лопатками была 4+ — напиши об этом Claude и терапевту.");
   // какие пункты чек-листа проваливаются чаще всего
   const misses = CHECKS.map(([id, label]) => [label, days.filter((d) => records[d] && !records[d].checks?.[id]).length]).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]);
   if (misses.length) out.push("Чаще всего проваливаешь: " + misses.slice(0, 3).map(([l, n]) => `${l.toLowerCase()} (${n})`).join(", "));
@@ -189,8 +187,8 @@ export function exportText(records, endDate, nDays, slipNote) {
     if (!r) { out.push(`${d} (${WD[weekday(d)]}): нет отчёта`); continue; }
     const missed = CHECKS.filter(([id]) => !r.checks?.[id]).map(([, l]) => l.toLowerCase());
     const parts = [
-      `вес ${f1(r.weight)}`, `сон ${f1(r.sleep)}`, `сиг ${r.cigs ?? "—"}`, `экран ${f1(r.screen)}`,
-      r.waist != null ? `талия ${f1(r.waist)}` : null, `боль ${r.pain ?? "—"}`, `оценка ${r.mood ?? "—"}`,
+      r.weight != null ? `вес ${f1(r.weight)}` : null, `сон ${f1(r.sleep)}`, `сиг ${r.cigs ?? "—"}`, `экран ${f1(r.screen)}`,
+      r.waist != null ? `талия ${f1(r.waist)}` : null, `оценка ${r.mood ?? "—"}`,
       `чек-лист ${checksDone(r)}/${CHECKS.length}` + (missed.length ? ` (не выполнено: ${missed.join(", ")})` : ""),
       r.note ? `заметка: ${r.note}` : null,
       r.slips?.length ? `срывы: ${r.slips.join("; ")}` : null,
