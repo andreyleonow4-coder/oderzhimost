@@ -38,7 +38,7 @@ h2 { font-size: 16px; margin: 0; font-weight: 700; }
 .progress { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
 .progress span { display: block; height: 100%; background: var(--accent); }
 
-.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border-radius: 12px; padding: 3px; gap: 3px; position: sticky; top: 0; z-index: 5; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-radius: 12px; padding: 3px; gap: 3px; position: sticky; top: 0; z-index: 5; }
 .tabs button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 700; padding: 9px 4px; border-radius: 9px; cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 
@@ -99,6 +99,31 @@ table.wk tr.miss td { color: var(--muted); }
 #exportText { font-family: var(--mono); font-size: 12px; min-height: 180px; }
 .slip { display: grid; gap: 8px; }
 [hidden] { display: none !important; }
+
+/* план */
+.subtabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.subtabs button { flex: none; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 600; padding: 7px 13px; border-radius: 999px; cursor: pointer; }
+.subtabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+details.acc { background: var(--bg); border-radius: 10px; padding: 0 12px; }
+details.acc > summary { list-style: none; cursor: pointer; padding: 11px 0; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: "›"; color: var(--muted); transition: transform .15s; }
+details.acc[open] > summary::after { transform: rotate(90deg); }
+details.acc > summary small { font-weight: 500; color: var(--muted); font-size: 12px; margin-left: auto; }
+details.acc .body { padding: 0 0 12px; display: grid; gap: 8px; font-size: 14px; }
+details.acc.now { outline: 2px solid var(--accent); }
+.badge { font-size: 11px; font-weight: 700; color: var(--accent-ink); background: var(--accent); border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+.body ul, .body ol { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.sched { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.sched td { padding: 6px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+.sched td:first-child { font-family: var(--mono); white-space: nowrap; color: var(--muted); width: 1%; padding-right: 10px; }
+.big { font-size: 15px; }
+.timer { font-family: var(--mono); font-size: 40px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.steps5 { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.steps5 li.on { font-weight: 700; color: var(--accent); }
+.shopcat { display: grid; gap: 6px; }
+.shopcat .check { padding: 9px 12px; }
+.check:has(input:checked) span.it { text-decoration: line-through; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -113,6 +138,7 @@ table.wk tr.miss td { color: var(--muted); }
     <button role="tab" aria-selected="true" data-tab="report">Отчёт</button>
     <button role="tab" aria-selected="false" data-tab="progress">Прогресс</button>
     <button role="tab" aria-selected="false" data-tab="week">Неделя</button>
+    <button role="tab" aria-selected="false" data-tab="plan">План</button>
   </nav>
 
   <!-- ОТЧЁТ -->
@@ -182,6 +208,161 @@ table.wk tr.miss td { color: var(--muted); }
       <button class="btn ghost" id="slipBtn">Записать срыв и подготовить отчёт</button>
     </div>
   </section>
+
+  <!-- ПЛАН -->
+  <section id="tab-plan" class="tabpanel" hidden style="display:grid;gap:14px">
+    <div class="subtabs" id="planTabs">
+      <button aria-pressed="true" data-p="smoke">Курение</button>
+      <button aria-pressed="false" data-p="food">Меню и рецепты</button>
+      <button aria-pressed="false" data-p="shop">Закупка</button>
+      <button aria-pressed="false" data-p="day">Распорядок</button>
+    </div>
+
+    <!-- курение -->
+    <div class="ppanel" id="p-smoke" style="display:grid;gap:14px">
+      <div class="card">
+        <div class="head-row"><h2 id="smTitle">Курение</h2><span class="eyebrow">метод Карра</span></div>
+        <div class="big" id="smNow"></div>
+        <button class="btn" id="cravBtn">Тянет курить — 5 минут</button>
+        <div id="cravBox" hidden style="display:grid;gap:10px">
+          <div class="timer" id="cravTime">5:00</div>
+          <ol class="steps5" id="cravSteps">
+            <li>Скажи себе: «Это маленький монстр умирает. Отлично, я свободен».</li>
+            <li>Стакан холодной воды.</li>
+            <li>20 приседаний или 15 отжиманий от стола. Или выйди пройтись.</li>
+            <li>Дыхание: вдох на 4, выдох на 6 — 10 раз.</li>
+            <li>Морковка, жвачка без сахара. Приступ проходит сам.</li>
+          </ol>
+          <button class="btn ghost" id="cravStop">Отпустило</button>
+        </div>
+      </div>
+      <div class="card" style="gap:8px">
+        <details class="acc" data-st="read"><summary>Этап 1 · Чтение<small>16–30 ноября</small></summary><div class="body">
+          <p style="margin:0"><b>Пока читаешь, кури как обычно — не сокращай.</b> Задача — убрать страх, а не мучиться.</p>
+          <ul>
+            <li>3–4 главы в день, внимательно, не фоном.</li>
+            <li>Каждую сигарету кури осознанно: «что она мне сейчас реально даёт?»</li>
+            <li>В заметке отчёта записывай ситуации курения — автобус, после еды, стресс, перемена. Это твои ловушки.</li>
+            <li><b>30 ноября:</b> дочитать, выкурить последнюю по ритуалу из книги, выбросить пачку, зажигалку, пепельницу.</li>
+          </ul>
+          <p style="margin:0" class="muted">Главные мысли: сигарета не снимает стресс — она снимает ломку, которую сама создала. Ты ничего не теряешь. «Одной» не бывает.</p>
+        </div></details>
+        <details class="acc" data-st="peak"><summary>Этап 2 · Первые 72 часа<small>1–3 декабря</small></summary><div class="body">
+          <ul>
+            <li>Пик ломки — дни 1–3: раздражение, тревога, тяга. Каждый приступ — 3–10 минут.</li>
+            <li><b>Кофе и энергетики — вдвое меньше.</b> Без никотина кофеин держится в крови дольше, та же чашка бьёт сильнее: тревога и бессонница.</li>
+            <li>10 000+ шагов: движение доказанно снижает тягу.</li>
+            <li>Предупреди девушку: «3 дня могу быть злым, это не про тебя».</li>
+            <li>Алкоголь — ноль до конца декабря. Главная причина срывов.</li>
+          </ul>
+        </div></details>
+        <details class="acc" data-st="rebuild"><summary>Этап 3 · Перестройка привычек<small>4–31 декабря</small></summary><div class="body">
+          <table class="sched">
+            <tr><td>Автобус</td><td>Наушники + жвачка, стой подальше от курящих</td></tr>
+            <tr><td>Перемена</td><td>Кефир + банан и дорога до корпуса — это и есть «перекур»</td></tr>
+            <tr><td>После еды</td><td>Сразу встать, помыть посуду, почистить зубы</td></tr>
+            <tr><td>Стресс</td><td>Мысль на бумагу + 5 минут дыхания. Не «одну, чтобы успокоиться»</td></tr>
+            <tr><td>Друзья</td><td>2 недели держись в стороне. Говори «я не курю», а не «я бросаю»</td></tr>
+          </table>
+          <p style="margin:0">+1–2 кг в декабре — нормально. Еду ниже 2000 ккал не урезай: голод провоцирует тягу.</p>
+          <p style="margin:0">Деньги с сигарет (~4000 ₽ в неделю) — в отдельную копилку: вулф-кат, турник, кроссовки.</p>
+        </div></details>
+        <details class="acc" data-st="hold"><summary>Этап 4 · Удержание<small>январь – март</small></summary><div class="body">
+          <ul>
+            <li>Тяги редкие, но будут возвращаться — это нормально, приступ всё равно минуты.</li>
+            <li>Опасные моменты: праздники, алкоголь, ссора, мысль «я же бросил, одна ничего не сделает».</li>
+            <li>Ответ один: <b>одной не бывает.</b></li>
+          </ul>
+        </div></details>
+        <details class="acc"><summary>Если сорвался</summary><div class="body">
+          <ol>
+            <li>Не «всё пропало». Вкладка «Неделя» → «Сорвался» → отчёт Claude сразу.</li>
+            <li>Остатки выбросить, перечитать последние главы Карра. Новый день отказа — завтра, не «с понедельника».</li>
+            <li>После второго срыва — к терапевту: цитизин (Табекс) или пластырь + жвачка вместе. Карр против, но при 30 сигаретах в день это честно повышает шансы.</li>
+          </ol>
+        </div></details>
+      </div>
+    </div>
+
+    <!-- меню -->
+    <div class="ppanel" id="p-food" hidden style="display:grid;gap:14px">
+      <div class="card" style="gap:8px">
+        <div class="head-row"><h2>Сегодня</h2><span class="eyebrow">~2200 ккал · белок 140–150 г</span></div>
+        <div class="big" id="foodToday"></div>
+      </div>
+      <div class="card" style="gap:8px">
+        <h2>Завтраки · 6:30</h2>
+        <div id="breakfasts" style="display:grid;gap:8px"></div>
+      </div>
+      <div class="card" style="gap:8px">
+        <h2>Ужины на неделю</h2>
+        <p class="empty">Готовишь вечером на 2 дня: ужин сегодня → поздний обед завтра в 17:30. Граммовки — на тебя на 2 приёма + немного девушке.</p>
+        <div id="dinners" style="display:grid;gap:8px"></div>
+      </div>
+      <div class="card" style="gap:8px">
+        <h2>Правила тарелки</h2>
+        <ul class="list">
+          <li>Половина — овощи, четверть — белок (~200 г), четверть — гарнир (кулак).</li>
+          <li>Перемена: кефир или питьевой йогурт 0,5 л + банан на ходу.</li>
+          <li>19:30 лёгкий ужин: белок + овощи без гарнира. После — только вода и чай.</li>
+          <li>Ниже 2000 ккал не опускаться. Голодовки запрещены.</li>
+          <li>Вес падает меньше 0,3 кг/нед две недели подряд → −150 ккал. Больше 1 кг/нед → +150.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- закупка -->
+    <div class="ppanel" id="p-shop" hidden style="display:grid;gap:14px">
+      <div class="card">
+        <div class="head-row"><h2>Закупка на неделю</h2><span class="eyebrow num" id="shopCount"></span></div>
+        <p class="empty" id="shopWeek"></p>
+        <div id="shopList" style="display:grid;gap:12px"></div>
+        <button class="btn ghost" id="shopReset">Снять все галочки</button>
+        <p class="empty">Галочки сбрасываются сами каждый понедельник. Заготовка — в воскресенье и среду по 1,5 часа.</p>
+      </div>
+    </div>
+
+    <!-- распорядок -->
+    <div class="ppanel" id="p-day" hidden style="display:grid;gap:14px">
+      <div class="card">
+        <h2>Учебные дни · пн, вт, чт, пт</h2>
+        <table class="sched">
+          <tr><td>6:00</td><td>Подъём, весь свет, холодная вода в лицо</td></tr>
+          <tr><td>6:15</td><td>Взвешивание, уход за лицом</td></tr>
+          <tr><td>6:30</td><td>Завтрак</td></tr>
+          <tr><td>7:00</td><td>Сборы, в рюкзак кефир + банан</td></tr>
+          <tr><td>7:20</td><td>Автобус</td></tr>
+          <tr><td>Перемена</td><td>Кефир + банан на ходу, 10 минут дневного света</td></tr>
+          <tr><td>17:30</td><td>Поздний обед — сразу как пришёл</td></tr>
+          <tr><td>18:00</td><td>Тренировка (пн, пт) или 10 минут спина + шаги</td></tr>
+          <tr><td>19:30</td><td>Лёгкий ужин, готовка на завтра</td></tr>
+          <tr><td>21:00</td><td>Отчёт в трекере + мысли на бумагу</td></tr>
+          <tr><td>21:30</td><td>Телефон на зарядку вне спальни, книга</td></tr>
+          <tr><td>22:00</td><td>Свет выключен</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Дома · ср, сб, вс</h2>
+        <table class="sched">
+          <tr><td>6:00</td><td>Подъём (максимум 7:00)</td></tr>
+          <tr><td>7:00</td><td>Завтрак</td></tr>
+          <tr><td>13:00</td><td>Обед</td></tr>
+          <tr><td>ср</td><td>Тренировка + заготовка еды</td></tr>
+          <tr><td>вс</td><td>Заготовка, замер талии, отчёт Claude</td></tr>
+          <tr><td>19:30</td><td>Ужин</td></tr>
+          <tr><td>22:00</td><td>Свет выключен</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h2>Сон</h2>
+        <ul class="list">
+          <li>Подъём в 6:00 каждый день, отбой 22:00.</li>
+          <li>Кофе только до 14:00. Днём не спать.</li>
+          <li>Не спится 20 минут — встань, бумажная книга при тусклом свете.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script type="module">
@@ -242,6 +423,7 @@ document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("cli
   updateMainButton();
   if (b.dataset.tab === "progress") renderProgress();
   if (b.dataset.tab === "week") renderWeek();
+  if (b.dataset.tab === "plan") renderPlan();
   window.scrollTo(0, 0);
 }));
 const activeTab = () => document.querySelector('.tabs button[aria-selected="true"]').dataset.tab;
@@ -448,6 +630,148 @@ $("slipBtn").addEventListener("click", async () => {
   $("exportText").scrollIntoView({ behavior: "smooth", block: "center" });
   $("slipBtn").textContent = "Записано. Скопируй отчёт выше и отправь Claude";
 });
+
+// ---------- план: данные ----------
+const BREAKFASTS = [
+  { t: "Омлет + хлеб + банан", k: "≈ 600 ккал · 33 г белка",
+    ing: ["4 яйца", "50 мл молока, соль", "2 куска чёрного хлеба", "1 банан"],
+    st: ["Взбей яйца с молоком и солью вилкой.", "Сковорода с каплей масла, средний огонь, вылей смесь.", "Накрой крышкой, слабый огонь 5–6 минут — омлет поднимется и схватится.", "Можно добавить горсть замороженных овощей или помидор."] },
+  { t: "Сырники (заготовка на 3 дня)", k: "5 шт + банан ≈ 600 ккал · 40 г белка",
+    ing: ["Творог 5% — 750 г", "3 яйца", "6 ст. л. муки + немного для обвалки", "2 ст. л. сахара, щепоть соли", "1 ст. л. масла для жарки"],
+    st: ["Разомни творог вилкой, вмешай яйца, сахар, соль, потом муку. Тесто липкое, но держит форму.", "Мокрыми руками сформируй 15 шайб, обваляй в муке.", "Жарь на среднем огне по 3–4 минуты с каждой стороны, потом 3 минуты под крышкой.", "Храни в холодильнике до 3 дней, утром разогрей в микроволновке 1 минуту или на сухой сковороде под крышкой по 2 минуты с каждой стороны."] },
+  { t: "Творог + бутерброды с яйцом", k: "≈ 600 ккал · 45 г белка",
+    ing: ["Творог 200 г + банан", "2 куска чёрного хлеба", "2 варёных яйца"],
+    st: ["Яйца вари заготовкой на 3 дня: в кипяток, 9 минут, потом в холодную воду.", "Творог с нарезанным бананом. Яйца на хлеб, соль, перец."] },
+];
+const DINNERS = { // ключ — день недели (0 = вс)
+  1: { t: "Тушёное бедро + гречка + тушёная капуста", k: "≈ 650 ккал · 50 г белка", time: "50 мин, из них активно 20",
+    ing: ["Куриное бедро без кожи — 1 кг", "Гречка — 250 г", "Капуста — пол кочана", "Морковь 1, лук 1", "Томатная паста 1 ст. л.", "Чеснок 3 зубца, паприка, соль, перец"],
+    st: ["Натри бедро солью, паприкой и давленым чесноком, оставь на 10 минут.", "Глубокая сковорода или кастрюля с 1 ст. л. масла, средне-сильный огонь: обжарь бедро по 4 минуты с каждой стороны до корочки.", "Влей 100 мл воды, накрой крышкой, слабый огонь 25 минут. В конце сними крышку и выпари жидкость — сок при проколе прозрачный.", "Гречку промой, залей водой 1:2, посоли. После кипения 15 минут под крышкой на слабом огне.", "Лук и морковь обжарь на 1 ч. л. масла 5 минут, добавь нашинкованную капусту и 100 мл воды, туши 25 минут, в конце томатная паста."] },
+  2: { t: "Плов на бедре", k: "≈ 700 ккал · 45 г белка", time: "60 мин",
+    ing: ["Куриное бедро без кожи — 900 г", "Рис длиннозёрный — 300 г", "Морковь 3, лук 2", "Чеснок — 1 головка", "Зира 1 ч. л., соль", "Масло 2 ст. л."],
+    st: ["Промой рис до прозрачной воды.", "В толстостенной кастрюле разогрей масло, обжарь мясо кубиками 7–8 минут.", "Добавь лук полукольцами — 5 минут, затем морковь соломкой — ещё 5, зиру и соль.", "Влей 300 мл кипятка, туши 10 минут.", "Выложи рис ровным слоем, не мешая. Долей кипяток на 1,5 см выше риса, в центр — целую головку чеснока.", "Без крышки, пока сверху не уйдёт вода, затем крышка и минимальный огонь 20 минут.", "Дай постоять 10 минут и перемешай."] },
+  3: { t: "Куриная печень с луком + пюре", k: "≈ 600 ккал · 40 г белка", time: "35 мин",
+    ing: ["Куриная печень — 600 г", "Лук 2", "Сметана 15% — 3 ст. л.", "Картофель — 1 кг", "Молоко — 100 мл", "Соль, перец"],
+    st: ["Картофель почисти и вари в подсоленной воде 20 минут.", "Печень промой, срежь плёнки.", "Лук обжарь на 1 ст. л. масла 5 минут, добавь печень, сильный огонь 3 минуты, перевернуть.", "Сметана + 50 мл воды, 5 минут на слабом огне. На разрезе печень не должна быть кровавой.", "Слей воду с картофеля, влей горячее молоко, растолки. Рядом — свежая капуста или огурец."] },
+  4: { t: "Минтай, тушённый с овощами + рис", k: "≈ 550 ккал · 45 г белка", time: "35 мин",
+    ing: ["Филе минтая — 900 г (разморозить в холодильнике с утра)", "Морковь 2, лук 1", "Замороженные овощи — 400 г", "Сметана 2 ст. л. (или томатная паста)", "Рис — 250 г", "Соль, перец, лимон по желанию"],
+    st: ["Рис промой, залей водой 1:2, после кипения 18 минут под крышкой.", "Филе нарежь кусками по 5 см, посоли, поперчи.", "В глубокой сковороде на 1 ст. л. масла обжарь лук и тёртую морковь 5 минут, добавь замороженные овощи — ещё 5 минут.", "Выложи рыбу поверх овощей, сметану разведи в 100 мл воды и влей.", "Крышка, слабый огонь 12–15 минут. Не мешай — минтай нежный и разваливается."] },
+  5: { t: "Суп с курицей + яйца", k: "≈ 550 ккал · 45 г белка (с 2 яйцами)", time: "50 мин",
+    ing: ["Куриное бедро — 700 г", "Картофель 4, морковь 1, лук 1", "Вермишель — горсть (или рис 3 ст. л.)", "Лавровый лист, укроп, соль", "В тарелку — 2 варёных яйца"],
+    st: ["Курицу залей 2,5 л холодной воды, доведи до кипения, сними пену, вари 30 минут.", "Вынь курицу, отдели мясо от костей.", "В бульон — картофель кубиками, 10 минут, затем тёртую морковь и мелкий лук, 5 минут.", "Вермишель — 5 минут. Мясо обратно, соль, лавровый лист, зелень.", "Суп сам по себе бедноват по белку — в тарелку добавляй 2 яйца."] },
+  6: { t: "Куриные котлеты + макароны + салат", k: "≈ 650 ккал · 50 г белка", time: "40 мин",
+    ing: ["Куриный фарш — 700 г", "Лук 1, яйцо 1", "Чёрный хлеб — 1 кусок, замочить в воде", "Чеснок 2 зубца, соль, перец", "Макароны из твёрдых сортов — 250 г", "Капуста + морковь для салата"],
+    st: ["Хлеб размочи в воде и отожми. Лук и чеснок натри на мелкой тёрке.", "Смешай фарш, хлеб, лук, чеснок, яйцо, соль, перец. Вымеси 2 минуты.", "Мокрыми руками сформируй 10–12 котлет.", "Обжарь на 1 ст. л. масла по 3 минуты с каждой стороны, затем 10 минут под крышкой на слабом огне с 2 ст. л. воды.", "Макароны — в кипящую подсоленную воду, по времени с пачки.", "Салат: тонко нашинкуй капусту, натри морковь, посоли, помни руками, капля масла."] },
+  0: { t: "Свободный приём + заготовка", k: "одна нормальная тарелка", time: "",
+    ing: ["Одна порция того, что хочется: пицца, бургер, шаурма"],
+    st: ["Один приём, а не «весь день добить». Остальное по плану.", "Днём — заготовка на неделю 1,5 часа: варишь гарниры, яйца, жаришь сырники, готовишь понедельничный ужин заранее."] },
+};
+const SHOP = [
+  ["Белок", ["Яйца — 40 шт", "Творог — 1,5 кг", "Кефир / питьевой йогурт — 4 × 0,5 л", "Куриное бедро или окорочка — 2,6 кг", "Куриная печень — 0,6 кг", "Куриный фарш — 0,7 кг", "Филе минтая — 0,9 кг"]],
+  ["Гарниры", ["Гречка — 0,5 кг", "Рис — 0,5 кг", "Макароны твёрдых сортов — 0,5 кг", "Картофель — 2 кг", "Чёрный хлеб — 1 буханка", "Вермишель — 1 пачка (раз в 2 нед.)"]],
+  ["Овощи", ["Капуста — 1 кочан", "Морковь — 1 кг", "Лук — 1 кг", "Чеснок — 2 головки", "Замороженные овощи — 1 кг", "Огурцы / помидоры — по сезону"]],
+  ["Фрукты", ["Бананы — ~10 шт", "Яблоки — 1 кг"]],
+  ["Раз в 2–4 недели", ["Мука", "Сметана 15%", "Молоко", "Томатная паста", "Подсолнечное масло", "Зира, паприка, лавровый лист", "Жвачка без сахара (с 1 дек)"]],
+];
+
+// ---------- план: отрисовка ----------
+function recipeHtml(r, open, badge) {
+  return `<details class="acc${badge ? " now" : ""}"${open ? " open" : ""}><summary><span>${esc(r.t)}</span>${badge ? `<span class="badge">${badge}</span>` : `<small>${esc(r.k)}</small>`}</summary><div class="body">
+    <div class="muted" style="font-size:12.5px">${esc(r.k)}${r.time ? " · " + esc(r.time) : ""}</div>
+    <div><b>Продукты</b><ul>${r.ing.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div><b>Как готовить</b><ol>${r.st.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></div></div></details>`;
+}
+const DNAMES = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+function renderFood() {
+  const wd = weekday(TODAY), yd = (wd + 6) % 7;
+  const bf = BREAKFASTS[diffDays(START, TODAY) >= 0 ? diffDays(START, TODAY) % 3 : 0];
+  $("foodToday").innerHTML = `<b>Завтрак:</b> ${esc(bf.t)}<br><b>Перемена:</b> кефир 0,5 л + банан<br><b>17:30:</b> ${yd === 0 ? "воскресная заготовка (гарнир, курица, яйца)" : esc(DINNERS[yd].t.toLowerCase()) + " (вчерашнее)"}<br><b>Готовишь вечером:</b> ${esc(DINNERS[wd].t.toLowerCase())}`;
+  $("breakfasts").innerHTML = BREAKFASTS.map((r) => recipeHtml(r, false, r === bf ? "сегодня" : "")).join("");
+  $("dinners").innerHTML = [1, 2, 3, 4, 5, 6, 0].map((d) => recipeHtml({ ...DINNERS[d], t: `${DNAMES[d]} · ${DINNERS[d].t}` }, d === wd, d === wd ? "сегодня" : "")).join("");
+}
+function renderSmoke() {
+  let st, html;
+  if (TODAY < QUIT_DATE) {
+    const n = diffDays(TODAY, QUIT_DATE);
+    st = "read";
+    html = n === 1 ? "<b>Сегодня последний день.</b> Дочитай, выкури последнюю по ритуалу из книги, выбрось пачку, зажигалку и пепельницу."
+      : `До последней сигареты <b class="num">${n - 1} дн.</b> (вечер 30 ноября). Читай 3–4 главы в день и кури как обычно — не сокращай.`;
+  } else {
+    const d = diffDays(QUIT_DATE, TODAY) + 1;
+    st = d <= 3 ? "peak" : d <= 31 ? "rebuild" : "hold";
+    html = `<b class="num good">День ${d}</b> без сигарет. ` + (d <= 3 ? "Пик ломки — держись, каждый приступ минуты." : d <= 31 ? "Острая ломка уходит. Ломаешь привычки-ловушки." : "Ты некурящий. Одной не бывает.");
+  }
+  $("smNow").innerHTML = html;
+  document.querySelectorAll("#p-smoke details[data-st]").forEach((x) => { const on = x.dataset.st === st; x.classList.toggle("now", on); if (on) x.open = true; });
+}
+let cravT = null;
+function stopCrav(won) {
+  clearInterval(cravT); cravT = null;
+  $("cravBox").hidden = true; $("cravBtn").hidden = false;
+  $("cravBtn").textContent = won ? "Приступ пережит ✓ · Тянет снова — 5 минут" : "Тянет курить — 5 минут";
+  if (won) haptic("success");
+}
+$("cravBtn").addEventListener("click", () => {
+  const t0 = Date.now(), LEN = 300;
+  $("cravBox").hidden = false; $("cravBtn").hidden = true;
+  const tick = () => {
+    const el = Math.floor((Date.now() - t0) / 1000), left = Math.max(0, LEN - el);
+    $("cravTime").textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+    const step = Math.min(4, Math.floor(el / 60));
+    $("cravSteps").querySelectorAll("li").forEach((li, i) => li.classList.toggle("on", i === step));
+    if (!left) stopCrav(true);
+  };
+  tick(); cravT = setInterval(tick, 500);
+});
+$("cravStop").addEventListener("click", () => stopCrav(true));
+
+// закупка: галочки на текущую неделю (с понедельника)
+const shopWeek = () => addDays(TODAY, -((weekday(TODAY) + 6) % 7));
+const SHOP_LS = "oderzhimost-shop";
+let shopDone = new Set(), shopLoaded = false;
+async function loadShop() {
+  const wk = shopWeek();
+  try {
+    if (cloud) { const v = await cloudCall("getItem", "shop_" + wk); shopDone = new Set(v ? JSON.parse(v) : []); }
+    else { const o = JSON.parse(localStorage.getItem(SHOP_LS) || "{}"); shopDone = new Set(o.week === wk ? o.ids : []); }
+  } catch (e) { shopDone = new Set(); }
+  shopLoaded = true;
+}
+async function saveShop() {
+  const wk = shopWeek(), ids = [...shopDone];
+  try {
+    if (cloud) await cloudCall("setItem", "shop_" + wk, JSON.stringify(ids));
+    else localStorage.setItem(SHOP_LS, JSON.stringify({ week: wk, ids }));
+  } catch (e) {}
+}
+function renderShop() {
+  const total = SHOP.reduce((a, [, xs]) => a + xs.length, 0);
+  $("shopWeek").textContent = `Неделя с ${short(shopWeek())}`;
+  $("shopList").innerHTML = SHOP.map(([cat, xs], ci) => `<div class="shopcat"><span class="eyebrow">${esc(cat)}</span>${xs.map((x, i) => {
+    const id = ci + "_" + i;
+    return `<label class="check"><input type="checkbox" data-id="${id}"${shopDone.has(id) ? " checked" : ""}><span class="it">${esc(x)}</span></label>`;
+  }).join("")}</div>`).join("");
+  $("shopCount").textContent = `${shopDone.size}/${total}`;
+}
+$("shopList").addEventListener("change", (e) => {
+  const id = e.target.dataset.id; if (!id) return;
+  e.target.checked ? shopDone.add(id) : shopDone.delete(id);
+  try { tg && tg.HapticFeedback.selectionChanged(); } catch (err) {}
+  $("shopCount").textContent = `${shopDone.size}/${SHOP.reduce((a, [, xs]) => a + xs.length, 0)}`;
+  saveShop();
+});
+$("shopReset").addEventListener("click", () => { shopDone.clear(); saveShop(); renderShop(); });
+
+$("planTabs").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  $("planTabs").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  document.querySelectorAll(".ppanel").forEach((p) => (p.hidden = p.id !== "p-" + b.dataset.p));
+});
+async function renderPlan() {
+  renderSmoke(); renderFood();
+  if (!shopLoaded) await loadShop();
+  renderShop();
+}
 
 // ---------- старт ----------
 renderHead();
